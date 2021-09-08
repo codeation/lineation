@@ -29,3 +29,13 @@ or just copy the downloaded GUI driver to the working directory and run:
 ```
 go run ./cmd test.xml
 ```
+
+## Mind-map format
+
+To create a simple mind map `test.xml`:
+
+```
+<map>
+    <node text="Main theme"></node>
+</map>
+```
