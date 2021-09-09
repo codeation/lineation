@@ -2,6 +2,8 @@
 
 Mind mapping application
 
+![simple screenshot](https://codeation.github.io/pages/images/lineation-test.png)
+
 ## Proof of Concept Version
 
 Notes:
@@ -32,14 +34,10 @@ go run ./cmd test.xml
 
 ## Mind-map format
 
-To create a simple mind map `test.xml`:
+To create a simple mind map copy to `test.xml`:
 
 ```
 <map>
     <node text="Main theme"></node>
 </map>
 ```
-
-## Screenshot
-
-![simple screenshot](https://codeation.github.io/pages/images/lineation-test.png)
