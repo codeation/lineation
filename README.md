@@ -39,3 +39,7 @@ To create a simple mind map `test.xml`:
     <node text="Main theme"></node>
 </map>
 ```
+
+## Screenshot
+
+![simple screenshot](https://codeation.github.io/pages/images/lineation-test.png)
