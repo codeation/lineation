@@ -15,6 +15,7 @@ func (c *Control) do(event impress.Eventer) {
 		if err := mm.Save(); err != nil {
 			fmt.Printf("save: %v\n", err)
 		}
+		c.modified = false
 
 	case event.Type() == impress.ConfigureEventType:
 		configureEvent := event.(impress.ConfigureEvent)
@@ -34,17 +35,25 @@ func (c *Control) do(event impress.Eventer) {
 		c.view.AddChildNode()
 	case event == impress.KeyEnter:
 		c.view.AddNextNode()
+		c.modified = true
 	case event == impress.KeyDelete:
 		c.view.DeleteNode()
+		c.modified = true
 
 	case event == impress.KeyBackSpace:
 		c.view.RemoveLastChar()
+		c.modified = true
 	case event.Type() == impress.KeyboardEventType:
 		keyboardEvent := event.(impress.KeyboardEvent)
 		if keyboardEvent.IsGraphic() {
 			c.view.InsertChar(keyboardEvent.Rune)
+			c.modified = true
 		}
 
 	case event.Type() == impress.MotionEventType:
 	}
+}
+
+func (c *Control) background() {
+	c.view.ReDraw(c.modified)
 }

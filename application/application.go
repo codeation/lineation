@@ -33,8 +33,7 @@ func NewApplication(mm *mindmap.MindMap) *Application {
 }
 
 func (a *Application) Run() {
-	a.guiApplication.Start(a.control.Loop)
-	a.guiApplication.Wait()
+	a.control.Loop()
 }
 
 func (a *Application) Close() {

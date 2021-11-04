@@ -8,16 +8,17 @@ import (
 )
 
 type Box struct {
-	text       string
-	texts      []string
-	rect       impress.Rect
-	isActive   bool
-	level      int
-	isRight    bool
-	parent     *Box
-	next, prev *Box
-	childs     []*Box
-	pal        *palette.Palette
+	text        string
+	texts       []string
+	rect        impress.Rect
+	cursorPoint impress.Point
+	isActive    bool
+	level       int
+	isRight     bool
+	parent      *Box
+	next, prev  *Box
+	childs      []*Box
+	pal         *palette.Palette
 }
 
 func NewBox(root *mindmap.Node, pal *palette.Palette) *Box {
@@ -55,6 +56,8 @@ func (b *Box) GetText() string {
 func (b *Box) SetText(text string) {
 	b.text = text
 	b.texts = b.pal.DefaultFont().Split(b.text, b.pal.BoxWidth(b.level)-b.pal.HorizontalTextAlign()*2)
+	b.cursorPoint.X = 0
+	b.cursorPoint.Y = 0
 	b.rect = impress.NewRect(0, 0, b.width(), b.height())
 }
 

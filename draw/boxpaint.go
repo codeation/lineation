@@ -25,6 +25,9 @@ func (b *Box) Align(since impress.Point) {
 			left = left.MoveY(child.heightWithChilds() + b.pal.VerticalBoxOffset())
 		}
 	}
+	if b.level != 1 {
+		return
+	}
 }
 
 func (b *Box) Draw(w *impress.Window, offset impress.Point) {
@@ -40,12 +43,14 @@ func (b *Box) Draw(w *impress.Window, offset impress.Point) {
 			b.pal.Color(palette.DefaultText))
 	}
 	if b.isActive {
-		var textSize impress.Size
-		if len(b.texts) != 0 {
-			textSize = b.pal.DefaultFont().Size(b.texts[len(b.texts)-1])
+		if true || (b.cursorPoint.X == 0 && b.cursorPoint.Y == 0) {
+			var textSize impress.Size
+			if len(b.texts) != 0 {
+				textSize = b.pal.DefaultFont().Size(b.texts[len(b.texts)-1])
+			}
+			b.cursorPoint = b.rect.Point.Move(offset).Move(b.pal.TextLinePoint(b.level, len(b.texts)-1)).MoveX(textSize.Width)
 		}
-		cursorPoint := b.rect.Point.Move(offset).Move(b.pal.TextLinePoint(b.level, len(b.texts)-1)).MoveX(textSize.Width)
-		w.Fill(cursorPoint.Move(b.pal.CursorPoint()).Size(b.pal.CursorSize()), b.pal.Color(palette.CursorBlock))
+		w.Fill(b.cursorPoint.Move(b.pal.CursorPoint()).Size(b.pal.CursorSize()), b.pal.Color(palette.CursorBlock))
 	}
 	b.drawLine(w, offset, b.pal.Color(palette.DefaultLine))
 	for _, child := range b.childs {

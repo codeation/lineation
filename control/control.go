@@ -7,22 +7,20 @@ import (
 	"github.com/codeation/lineation/mindmap"
 )
 
-type eventer interface {
-	Event() impress.Eventer
-}
-
 type Control struct {
-	eventer interface{ Event() impress.Eventer }
-	view    *draw.View
-	mm      *mindmap.MindMap
+	eventChan <-chan impress.Eventer
+	view      *draw.View
+	mm        *mindmap.MindMap
+	modified  bool
 }
 
-func NewControl(eventer eventer, v *draw.View, mm *mindmap.MindMap) *Control {
-	return &Control{
-		eventer: eventer,
-		view:    v,
-		mm:      mm,
+func NewControl(app *impress.Application, v *draw.View, mm *mindmap.MindMap) *Control {
+	c := &Control{
+		eventChan: app.Chan(),
+		view:      v,
+		mm:        mm,
 	}
+	return c
 }
 
 func (c *Control) Done() {
@@ -30,10 +28,15 @@ func (c *Control) Done() {
 
 func (c *Control) Loop() {
 	for {
-		event := c.eventer.Event()
-		if event == impress.DoneEvent || event == impress.KeyExit {
+		event := <-c.eventChan
+		if event == impress.DestroyEvent || event == impress.KeyExit {
 			return
 		}
+
 		c.do(event)
+
+		if len(c.eventChan) == 0 {
+			c.background()
+		}
 	}
 }
