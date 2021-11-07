@@ -5,6 +5,9 @@ import (
 )
 
 func (b *Box) SetActive(isActive bool) {
+	if !b.isActive {
+		b.content.End()
+	}
 	b.isActive = isActive
 }
 
@@ -33,7 +36,7 @@ func (b *Box) up() *Box {
 }
 
 func (b *Box) Find(point impress.Point) *Box {
-	if point.In(b.rect) {
+	if point.In(b.rect()) {
 		return b
 	}
 	for _, child := range b.childs {

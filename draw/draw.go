@@ -2,7 +2,6 @@ package draw
 
 import (
 	"time"
-	"unicode/utf8"
 
 	"github.com/codeation/impress"
 
@@ -17,7 +16,7 @@ type View struct {
 	rootBox    *Box
 	activeBox  *Box
 	markRedraw bool
-	withAnime  bool
+	isModified bool
 }
 
 func NewView(w *impress.Window, box *Box) *View {
@@ -33,6 +32,13 @@ func (v *View) GetNodes() *mindmap.Node {
 	return v.rootBox.GetNodes()
 }
 
+func (v *View) Modified(ok bool) {
+	if v.isModified != ok {
+		v.QueueDraw()
+	}
+	v.isModified = ok
+}
+
 func (v *View) animeOffset(nextOffset impress.Point) {
 	const steps = 5
 	const animeDuration = 100 * time.Millisecond
@@ -46,29 +52,31 @@ func (v *View) animeOffset(nextOffset impress.Point) {
 	}
 }
 
-func (v *View) QueueDraw(withAnime bool) {
+func (v *View) QueueDraw() {
 	v.markRedraw = true
-	v.withAnime = withAnime
 }
 
-func (v *View) ReDraw(modified bool) {
+func (v *View) ReDraw() {
 	if !v.markRedraw {
 		return
 	}
 	v.markRedraw = false
+	v.rootBox.SplitLeftRight()
+	v.rootBox.Align(impress.NewPoint(v.windowSize.Width/2, 20))
 	nextOffset := v.activeBox.GetOffset(v.windowSize, v.offset)
 	nextOffset = v.rootBox.Fit(v.windowSize, nextOffset)
+	v.activeBox.WarpText()
 	v.w.Clear()
-	if nextOffset != v.offset && v.withAnime {
+	if nextOffset != v.offset {
 		v.animeOffset(nextOffset)
 	}
-	v.withAnime = false
 	v.offset = nextOffset
 	v.rootBox.Draw(v.w, v.offset)
-	if modified {
-		v.w.Fill(impress.NewRect(2, 2, 4, 4), v.rootBox.pal.Color(palette.ActiveEdge))
+	if v.isModified {
+		v.w.Fill(impress.NewRect(2, 2, 8, 8), v.rootBox.pal.Color(palette.ActiveEdge))
 	}
 	v.w.Show()
+	time.Sleep(10 * time.Millisecond)
 }
 
 func (v *View) ConfigureSize(size impress.Size) {
@@ -77,8 +85,7 @@ func (v *View) ConfigureSize(size impress.Size) {
 	}
 	v.windowSize = size
 	v.w.Size(impress.NewRect(0, 0, size.Width, size.Height))
-	v.rootBox.Align(impress.NewPoint(size.Width/2, 20))
-	v.QueueDraw(false)
+	v.QueueDraw()
 }
 
 func (v *View) KeyDown() {
@@ -89,7 +96,7 @@ func (v *View) KeyDown() {
 	v.activeBox.SetActive(false)
 	v.activeBox = next
 	v.activeBox.SetActive(true)
-	v.QueueDraw(true)
+	v.QueueDraw()
 }
 
 func (v *View) KeyUp() {
@@ -100,7 +107,7 @@ func (v *View) KeyUp() {
 	v.activeBox.SetActive(false)
 	v.activeBox = next
 	v.activeBox.SetActive(true)
-	v.QueueDraw(true)
+	v.QueueDraw()
 }
 
 func (v *View) Click(point impress.Point) {
@@ -111,24 +118,36 @@ func (v *View) Click(point impress.Point) {
 	v.activeBox.SetActive(false)
 	v.activeBox = next
 	v.activeBox.SetActive(true)
-	v.QueueDraw(true)
+	v.QueueDraw()
+}
+
+func (v *View) KeyLeft() {
+	ok := v.activeBox.content.Left()
+	if !ok {
+		return
+	}
+	v.QueueDraw()
+}
+
+func (v *View) KeyRight() {
+	ok := v.activeBox.content.Right()
+	if !ok {
+		return
+	}
+	v.QueueDraw()
 }
 
 func (v *View) RemoveLastChar() {
-	text := v.activeBox.GetText()
-	if text == "" {
+	ok := v.activeBox.Backspace()
+	if !ok {
 		return
 	}
-	_, lastsize := utf8.DecodeLastRune([]byte(text))
-	v.activeBox.SetText(text[:len(text)-lastsize])
-	v.rootBox.Align(impress.NewPoint(v.windowSize.Width/2, 20))
-	v.QueueDraw(false)
+	v.QueueDraw()
 }
 
 func (v *View) InsertChar(alpha rune) {
-	v.activeBox.SetText(v.activeBox.GetText() + string(alpha))
-	v.rootBox.Align(impress.NewPoint(v.windowSize.Width/2, 20))
-	v.QueueDraw(false)
+	v.activeBox.Insert(alpha)
+	v.QueueDraw()
 }
 
 func (v *View) AddChildNode() {
@@ -136,8 +155,7 @@ func (v *View) AddChildNode() {
 	v.activeBox.SetActive(false)
 	v.activeBox = next
 	v.activeBox.SetActive(true)
-	v.rootBox.Align(impress.NewPoint(v.windowSize.Width/2, 20))
-	v.QueueDraw(false)
+	v.QueueDraw()
 }
 
 func (v *View) AddNextNode() {
@@ -148,8 +166,7 @@ func (v *View) AddNextNode() {
 	v.activeBox.SetActive(false)
 	v.activeBox = next
 	v.activeBox.SetActive(true)
-	v.rootBox.Align(impress.NewPoint(v.windowSize.Width/2, 20))
-	v.QueueDraw(false)
+	v.QueueDraw()
 }
 
 func (v *View) DeleteNode() {
@@ -159,6 +176,5 @@ func (v *View) DeleteNode() {
 	next := v.activeBox.DeleteNode()
 	v.activeBox = next
 	v.activeBox.SetActive(true)
-	v.rootBox.Align(impress.NewPoint(v.windowSize.Width/2, 20))
-	v.QueueDraw(false)
+	v.QueueDraw()
 }

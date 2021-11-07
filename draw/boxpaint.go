@@ -8,8 +8,7 @@ import (
 )
 
 func (b *Box) Align(since impress.Point) {
-	b.rect = since.MoveX(-b.width() / 2).Size(b.rect.Size)
-	b.markRight()
+	b.point = since.MoveX(-b.width() / 2)
 	left := since.MoveX(-b.pal.HorizontalBoxOffset(b.level + 1))
 	right := since.MoveX(b.pal.HorizontalBoxOffset(b.level + 1))
 	if b.level > 2 {
@@ -25,32 +24,33 @@ func (b *Box) Align(since impress.Point) {
 			left = left.MoveY(child.heightWithChilds() + b.pal.VerticalBoxOffset())
 		}
 	}
-	if b.level != 1 {
-		return
+}
+
+func (b *Box) WarpText() {
+	row, col := b.content.Cursor()
+	if b.warpRow != row || b.warpCol != col {
+		b.warpTextSize = b.pal.DefaultFont().Size(b.content.Line(row)[:col])
+		b.warpRow = row
+		b.warpCol = col
 	}
 }
 
 func (b *Box) Draw(w *impress.Window, offset impress.Point) {
+	rect := b.rect()
 	if b.isActive {
-		w.Fill(b.rect.Move(offset), b.pal.Color(palette.ActiveBoxBackground))
-		drawutil.DrawRectEdge(w, b.rect.Move(offset), b.pal.Color(palette.ActiveEdge))
+		w.Fill(rect.Move(offset), b.pal.Color(palette.ActiveBoxBackground))
+		drawutil.DrawRectEdge(w, rect.Move(offset), b.pal.Color(palette.ActiveEdge))
 	} else {
-		drawutil.DrawRectEdge(w, b.rect.Move(offset), b.pal.Color(palette.DefaultEdge))
-	}
-	for i := range b.texts {
-		w.Text(b.texts[i], b.pal.DefaultFont(),
-			b.rect.Point.Move(offset).Move(b.pal.TextLinePoint(b.level, i)),
-			b.pal.Color(palette.DefaultText))
+		drawutil.DrawRectEdge(w, rect.Move(offset), b.pal.Color(palette.DefaultEdge))
 	}
 	if b.isActive {
-		if true || (b.cursorPoint.X == 0 && b.cursorPoint.Y == 0) {
-			var textSize impress.Size
-			if len(b.texts) != 0 {
-				textSize = b.pal.DefaultFont().Size(b.texts[len(b.texts)-1])
-			}
-			b.cursorPoint = b.rect.Point.Move(offset).Move(b.pal.TextLinePoint(b.level, len(b.texts)-1)).MoveX(textSize.Width)
-		}
-		w.Fill(b.cursorPoint.Move(b.pal.CursorPoint()).Size(b.pal.CursorSize()), b.pal.Color(palette.CursorBlock))
+		cursorPoint := rect.Point.Move(offset).Move(b.pal.TextLinePoint(b.level, b.warpRow)).MoveX(b.warpTextSize.Width)
+		w.Fill(cursorPoint.Move(b.pal.CursorPoint()).Size(b.pal.CursorSize()), b.pal.Color(palette.CursorBlock))
+	}
+	for i := 0; i < b.content.Lines(); i++ {
+		w.Text(b.content.Line(i), b.pal.DefaultFont(),
+			rect.Point.Move(offset).Move(b.pal.TextLinePoint(b.level, i)),
+			b.pal.Color(palette.DefaultText))
 	}
 	b.drawLine(w, offset, b.pal.Color(palette.DefaultLine))
 	for _, child := range b.childs {
@@ -70,28 +70,30 @@ func (b *Box) drawLine(w *impress.Window, offset impress.Point, color impress.Co
 }
 
 func (b *Box) lineFrom(toRight bool) impress.Point {
+	rect := b.rect()
 	if b.level == 1 || b.level == 2 {
 		if toRight {
-			return impress.NewPoint(b.rect.X+b.rect.Width, b.rect.Y+b.pal.VerticalTextAlign())
+			return impress.NewPoint(rect.X+rect.Width, rect.Y+b.pal.VerticalTextAlign())
 		}
-		return impress.NewPoint(b.rect.X-1, b.rect.Y+b.pal.VerticalTextAlign())
+		return impress.NewPoint(rect.X-1, rect.Y+b.pal.VerticalTextAlign())
 	}
 	if toRight {
-		return impress.NewPoint(b.rect.X+b.pal.HorizontalTextAlign(), b.rect.Y+b.rect.Height)
+		return impress.NewPoint(rect.X+b.pal.HorizontalTextAlign(), rect.Y+rect.Height)
 	}
-	return impress.NewPoint(b.rect.X+b.rect.Width-b.pal.HorizontalTextAlign(), b.rect.Y+b.rect.Height)
+	return impress.NewPoint(rect.X+rect.Width-b.pal.HorizontalTextAlign(), rect.Y+rect.Height)
 }
 
 func (b *Box) lineTo(toRight bool) impress.Point {
+	rect := b.rect()
 	if b.level == 2 || b.level == 3 {
 		if toRight {
-			return impress.NewPoint(b.rect.X-1, b.rect.Y+b.pal.VerticalTextAlign())
+			return impress.NewPoint(rect.X-1, rect.Y+b.pal.VerticalTextAlign())
 		}
-		return impress.NewPoint(b.rect.X+b.rect.Width, b.rect.Y+b.pal.VerticalTextAlign())
+		return impress.NewPoint(rect.X+rect.Width, rect.Y+b.pal.VerticalTextAlign())
 	}
 
 	if toRight {
-		return impress.NewPoint(b.rect.X-1, b.rect.Y+b.pal.VerticalTextAlign())
+		return impress.NewPoint(rect.X-1, rect.Y+b.pal.VerticalTextAlign())
 	}
-	return impress.NewPoint(b.rect.X+b.rect.Width, b.rect.Y+b.pal.VerticalTextAlign())
+	return impress.NewPoint(rect.X+rect.Width, rect.Y+b.pal.VerticalTextAlign())
 }

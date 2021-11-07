@@ -11,7 +11,6 @@ type Control struct {
 	eventChan <-chan impress.Eventer
 	view      *draw.View
 	mm        *mindmap.MindMap
-	modified  bool
 }
 
 func NewControl(app *impress.Application, v *draw.View, mm *mindmap.MindMap) *Control {

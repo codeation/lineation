@@ -5,20 +5,21 @@ import (
 
 	"github.com/codeation/lineation/mindmap"
 	"github.com/codeation/lineation/palette"
+	"github.com/codeation/lineation/wrap"
 )
 
 type Box struct {
-	text        string
-	texts       []string
-	rect        impress.Rect
-	cursorPoint impress.Point
-	isActive    bool
-	level       int
-	isRight     bool
-	parent      *Box
-	next, prev  *Box
-	childs      []*Box
-	pal         *palette.Palette
+	content          *wrap.Wrap
+	point            impress.Point
+	warpRow, warpCol int
+	warpTextSize     impress.Size
+	level            int
+	isActive         bool
+	isRight          bool
+	parent           *Box
+	next, prev       *Box
+	childs           []*Box
+	pal              *palette.Palette
 }
 
 func NewBox(root *mindmap.Node, pal *palette.Palette) *Box {
@@ -27,14 +28,13 @@ func NewBox(root *mindmap.Node, pal *palette.Palette) *Box {
 
 func newBoxNode(node *mindmap.Node, parent *Box, level int, pal *palette.Palette) *Box {
 	b := &Box{
-		text:     node.Text,
+		content:  wrap.NewWrap(node.Text, pal.DefaultFont(), pal.BoxWidth(level)-pal.HorizontalTextAlign()*2),
 		parent:   parent,
 		level:    level,
 		pal:      pal,
 		isActive: level == 1,
 	}
-	b.texts = b.pal.DefaultFont().Split(node.Text, b.pal.BoxWidth(level)-b.pal.HorizontalTextAlign()*2)
-	b.rect = impress.NewRect(0, 0, b.width(), b.height())
+	b.content.End()
 	for _, child := range node.Childs {
 		b.childs = append(b.childs, newBoxNode(child, b, level+1, pal))
 	}
@@ -49,21 +49,9 @@ func newBoxNode(node *mindmap.Node, parent *Box, level int, pal *palette.Palette
 	return b
 }
 
-func (b *Box) GetText() string {
-	return b.text
-}
-
-func (b *Box) SetText(text string) {
-	b.text = text
-	b.texts = b.pal.DefaultFont().Split(b.text, b.pal.BoxWidth(b.level)-b.pal.HorizontalTextAlign()*2)
-	b.cursorPoint.X = 0
-	b.cursorPoint.Y = 0
-	b.rect = impress.NewRect(0, 0, b.width(), b.height())
-}
-
 func (b *Box) GetNodes() *mindmap.Node {
 	node := &mindmap.Node{
-		Text: b.text,
+		Text: b.content.String(),
 	}
 	for _, child := range b.childs {
 		node.Childs = append(node.Childs, child.GetNodes())
@@ -73,11 +61,11 @@ func (b *Box) GetNodes() *mindmap.Node {
 
 func (b *Box) AddChildNode() *Box {
 	next := &Box{
-		parent: b,
-		level:  b.level + 1,
-		pal:    b.pal,
+		content: wrap.NewWrap("", b.pal.DefaultFont(), b.pal.BoxWidth(b.level+1)-b.pal.HorizontalTextAlign()*2),
+		parent:  b,
+		level:   b.level + 1,
+		pal:     b.pal,
 	}
-	next.rect = impress.NewRect(0, 0, next.width(), next.height())
 	if len(b.childs) == 0 {
 		b.childs = []*Box{next}
 		return next
@@ -90,13 +78,13 @@ func (b *Box) AddChildNode() *Box {
 
 func (b *Box) AddNextNode() *Box {
 	next := &Box{
-		parent: b.parent,
-		level:  b.level,
-		pal:    b.pal,
-		prev:   b,
-		next:   b.next,
+		content: wrap.NewWrap("", b.pal.DefaultFont(), b.pal.BoxWidth(b.level)-b.pal.HorizontalTextAlign()*2),
+		parent:  b.parent,
+		level:   b.level,
+		pal:     b.pal,
+		prev:    b,
+		next:    b.next,
 	}
-	next.rect = impress.NewRect(0, 0, next.width(), next.height())
 	if b.next != nil {
 		b.next.prev = next
 	}
@@ -132,4 +120,12 @@ func (b *Box) DeleteNode() *Box {
 		b.next.prev = b.prev
 	}
 	return next
+}
+
+func (b *Box) Insert(alpha rune) {
+	b.content.Insert(alpha)
+}
+
+func (b *Box) Backspace() bool {
+	return b.content.Backspace()
 }

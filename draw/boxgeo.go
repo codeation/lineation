@@ -9,7 +9,11 @@ func (b *Box) width() int {
 }
 
 func (b *Box) height() int {
-	return b.pal.BoxHeight(b.level, len(b.texts))
+	return b.pal.BoxHeight(b.level, b.content.Lines())
+}
+
+func (b *Box) rect() impress.Rect {
+	return b.point.Size(impress.NewSize(b.width(), b.height()))
 }
 
 func (b *Box) heightWithChilds() int {
@@ -38,10 +42,7 @@ func (b *Box) heightOfChilds() int {
 	return output
 }
 
-func (b *Box) markRight() {
-	if b.level != 1 {
-		return
-	}
+func (b *Box) SplitLeftRight() {
 	if len(b.childs) < 2 {
 		for i := range b.childs {
 			b.childs[i].isRight = true
@@ -81,22 +82,23 @@ func (b *Box) markRight() {
 }
 
 func (b *Box) GetOffset(windowSize impress.Size, offset impress.Point) impress.Point {
+	rect := b.rect()
 	x := offset.X
-	right := x + b.rect.X + b.rect.Width
+	right := x + rect.X + rect.Width
 	if right > windowSize.Width-b.pal.HorizontalBoxAlign() {
 		x += windowSize.Width - b.pal.HorizontalBoxAlign() - right
 	}
-	left := x + b.rect.X
+	left := x + rect.X
 	if left < b.pal.HorizontalBoxAlign() {
 		x += b.pal.HorizontalBoxAlign() - left
 	}
 
 	y := offset.Y
-	bottom := y + b.rect.Y + b.rect.Height
+	bottom := y + rect.Y + rect.Height
 	if bottom > windowSize.Height-b.pal.VerticalBoxAlign() {
 		y += windowSize.Height - b.pal.VerticalBoxAlign() - bottom
 	}
-	top := y + b.rect.Y
+	top := y + rect.Y
 	if top < b.pal.VerticalBoxAlign() {
 		y += b.pal.VerticalBoxAlign() - top
 	}
@@ -105,8 +107,9 @@ func (b *Box) GetOffset(windowSize impress.Size, offset impress.Point) impress.P
 }
 
 func (b *Box) getEdge(left, top, right, bottom int) (int, int, int, int) {
-	left, top, right, bottom = minInt(left, b.rect.X), minInt(top, b.rect.Y),
-		maxInt(right, b.rect.X+b.rect.Width), maxInt(bottom, b.rect.Y+b.rect.Height)
+	rect := b.rect()
+	left, top, right, bottom = minInt(left, rect.X), minInt(top, rect.Y),
+		maxInt(right, rect.X+rect.Width), maxInt(bottom, rect.Y+rect.Height)
 	for _, child := range b.childs {
 		left, top, right, bottom = child.getEdge(left, top, right, bottom)
 	}
@@ -114,7 +117,8 @@ func (b *Box) getEdge(left, top, right, bottom int) (int, int, int, int) {
 }
 
 func (b *Box) getEdgeSize() impress.Size {
-	left, top, right, bottom := b.rect.X, b.rect.Y, b.rect.X+b.rect.Width, b.rect.Y+b.rect.Height
+	rect := b.rect()
+	left, top, right, bottom := rect.X, rect.Y, rect.X+rect.Width, rect.Y+rect.Height
 	left, top, right, bottom = b.getEdge(left, top, right, bottom)
 	return impress.NewSize(right-left, bottom-top)
 }
