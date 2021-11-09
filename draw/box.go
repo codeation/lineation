@@ -1,7 +1,7 @@
 package draw
 
 import (
-	"github.com/codeation/impress"
+	"image"
 
 	"github.com/codeation/lineation/mindmap"
 	"github.com/codeation/lineation/palette"
@@ -10,9 +10,9 @@ import (
 
 type Box struct {
 	content          *wrap.Wrap
-	point            impress.Point
+	point            image.Point
 	warpRow, warpCol int
-	warpTextSize     impress.Size
+	warpTextSize     image.Point
 	level            int
 	isActive         bool
 	isRight          bool

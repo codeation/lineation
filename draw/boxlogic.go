@@ -1,8 +1,6 @@
 package draw
 
-import (
-	"github.com/codeation/impress"
-)
+import "image"
 
 func (b *Box) SetActive(isActive bool) {
 	if !b.isActive {
@@ -35,7 +33,7 @@ func (b *Box) up() *Box {
 	return cursor
 }
 
-func (b *Box) Find(point impress.Point) *Box {
+func (b *Box) Find(point image.Point) *Box {
 	if point.In(b.rect()) {
 		return b
 	}

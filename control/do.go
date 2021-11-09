@@ -3,59 +3,59 @@ package control
 import (
 	"fmt"
 
-	"github.com/codeation/impress"
+	"github.com/codeation/impress/event"
 
 	"github.com/codeation/lineation/mindmap"
 )
 
-func (c *Control) do(event impress.Eventer) {
+func (c *Control) do(action event.Eventer) {
 	switch {
-	case event == impress.KeySave:
+	case action == event.KeySave:
 		mm := mindmap.NewMindMap(c.mm.Filename(), c.view.GetNodes())
 		if err := mm.Save(); err != nil {
 			fmt.Printf("save: %v\n", err)
 		}
 		c.view.Modified(false)
 
-	case event.Type() == impress.ConfigureEventType:
-		configureEvent := event.(impress.ConfigureEvent)
+	case action.Type() == event.ConfigureType:
+		configureEvent := action.(event.Configure)
 		c.view.ConfigureSize(configureEvent.Size)
 
-	case event == impress.KeyDown:
+	case action == event.KeyDown:
 		c.view.KeyDown()
-	case event == impress.KeyUp:
+	case action == event.KeyUp:
 		c.view.KeyUp()
-	case event.Type() == impress.ButtonEventType:
-		buttonEvent := event.(impress.ButtonEvent)
-		if buttonEvent.Action == impress.ButtonActionRelease && buttonEvent.Button == impress.ButtonLeft {
+	case action.Type() == event.ButtonType:
+		buttonEvent := action.(event.Button)
+		if buttonEvent.Action == event.ButtonActionRelease && buttonEvent.Button == event.ButtonLeft {
 			c.view.Click(buttonEvent.Point)
 		}
 
-	case event == impress.KeyTab:
+	case action == event.KeyTab:
 		c.view.AddChildNode()
 		c.view.Modified(true)
-	case event == impress.KeyEnter:
+	case action == event.KeyEnter:
 		c.view.AddNextNode()
 		c.view.Modified(true)
-	case event == impress.KeyDelete:
+	case action == event.KeyDelete:
 		c.view.DeleteNode()
 		c.view.Modified(true)
 
-	case event == impress.KeyBackSpace:
+	case action == event.KeyBackSpace:
 		c.view.RemoveLastChar()
 		c.view.Modified(true)
-	case event == impress.KeyLeft:
+	case action == event.KeyLeft:
 		c.view.KeyLeft()
-	case event == impress.KeyRight:
+	case action == event.KeyRight:
 		c.view.KeyRight()
-	case event.Type() == impress.KeyboardEventType:
-		keyboardEvent := event.(impress.KeyboardEvent)
+	case action.Type() == event.KeyboardType:
+		keyboardEvent := action.(event.Keyboard)
 		if keyboardEvent.IsGraphic() {
 			c.view.InsertChar(keyboardEvent.Rune)
 			c.view.Modified(true)
 		}
 
-	case event.Type() == impress.MotionEventType:
+	case action.Type() == event.MotionType:
 	}
 }
 

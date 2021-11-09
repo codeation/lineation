@@ -2,13 +2,14 @@ package control
 
 import (
 	"github.com/codeation/impress"
+	"github.com/codeation/impress/event"
 
 	"github.com/codeation/lineation/draw"
 	"github.com/codeation/lineation/mindmap"
 )
 
 type Control struct {
-	eventChan <-chan impress.Eventer
+	eventChan <-chan event.Eventer
 	view      *draw.View
 	mm        *mindmap.MindMap
 }
@@ -27,12 +28,12 @@ func (c *Control) Done() {
 
 func (c *Control) Loop() {
 	for {
-		event := <-c.eventChan
-		if event == impress.DestroyEvent || event == impress.KeyExit {
+		action := <-c.eventChan
+		if action == event.DestroyEvent || action == event.KeyExit {
 			return
 		}
 
-		c.do(event)
+		c.do(action)
 
 		if len(c.eventChan) == 0 {
 			c.background()

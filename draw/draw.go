@@ -1,6 +1,7 @@
 package draw
 
 import (
+	"image"
 	"time"
 
 	"github.com/codeation/impress"
@@ -11,8 +12,8 @@ import (
 
 type View struct {
 	w          *impress.Window
-	windowSize impress.Size
-	offset     impress.Point
+	windowSize image.Point
+	offset     image.Point
 	rootBox    *Box
 	activeBox  *Box
 	markRedraw bool
@@ -22,7 +23,7 @@ type View struct {
 func NewView(w *impress.Window, box *Box) *View {
 	return &View{
 		w:          w,
-		windowSize: impress.NewSize(1, 1),
+		windowSize: image.Pt(1, 1),
 		rootBox:    box,
 		activeBox:  box,
 	}
@@ -39,11 +40,11 @@ func (v *View) Modified(ok bool) {
 	v.isModified = ok
 }
 
-func (v *View) animeOffset(nextOffset impress.Point) {
+func (v *View) animeOffset(nextOffset image.Point) {
 	const steps = 5
 	const animeDuration = 100 * time.Millisecond
 	for i := 1; i < steps; i++ {
-		tempOffset := impress.NewPoint((nextOffset.X*i+v.offset.X*(steps-i))/steps,
+		tempOffset := image.Pt((nextOffset.X*i+v.offset.X*(steps-i))/steps,
 			(nextOffset.Y*i+v.offset.Y*(steps-i))/steps)
 		v.rootBox.Draw(v.w, tempOffset)
 		v.w.Show()
@@ -62,7 +63,7 @@ func (v *View) ReDraw() {
 	}
 	v.markRedraw = false
 	v.rootBox.SplitLeftRight()
-	v.rootBox.Align(impress.NewPoint(v.windowSize.Width/2, 20))
+	v.rootBox.Align(image.Pt(v.windowSize.X/2, 20))
 	nextOffset := v.activeBox.GetOffset(v.windowSize, v.offset)
 	nextOffset = v.rootBox.Fit(v.windowSize, nextOffset)
 	v.activeBox.WarpText()
@@ -73,18 +74,18 @@ func (v *View) ReDraw() {
 	v.offset = nextOffset
 	v.rootBox.Draw(v.w, v.offset)
 	if v.isModified {
-		v.w.Fill(impress.NewRect(2, 2, 8, 8), v.rootBox.pal.Color(palette.ActiveEdge))
+		v.w.Fill(image.Rect(2, 2, 8, 8), v.rootBox.pal.Color(palette.ActiveEdge))
 	}
 	v.w.Show()
 	time.Sleep(10 * time.Millisecond)
 }
 
-func (v *View) ConfigureSize(size impress.Size) {
+func (v *View) ConfigureSize(size image.Point) {
 	if v.windowSize == size {
 		return
 	}
 	v.windowSize = size
-	v.w.Size(impress.NewRect(0, 0, size.Width, size.Height))
+	v.w.Size(image.Rect(0, 0, size.X, size.Y))
 	v.QueueDraw()
 }
 
@@ -110,8 +111,8 @@ func (v *View) KeyUp() {
 	v.QueueDraw()
 }
 
-func (v *View) Click(point impress.Point) {
-	next := v.rootBox.Find(point.Move(impress.NewPoint(-v.offset.X, -v.offset.Y)))
+func (v *View) Click(point image.Point) {
+	next := v.rootBox.Find(point.Add(image.Pt(-v.offset.X, -v.offset.Y)))
 	if next == nil || next == v.activeBox {
 		return
 	}

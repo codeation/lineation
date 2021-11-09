@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"image"
+	"image/color"
 	"os"
 	"path"
 	"sync"
@@ -16,15 +17,15 @@ type Palette struct {
 	config *Config
 }
 
-type ColorType impress.Color
+type ColorType color.Color
 
 var (
-	black  = impress.NewColor(0, 0, 0)
-	white  = impress.NewColor(255, 255, 255)
-	gray   = impress.NewColor(192, 192, 192)
-	silver = impress.NewColor(239, 239, 239)
-	lite   = impress.NewColor(224, 224, 224)
-	red    = impress.NewColor(255, 0, 0)
+	black  = color.RGBA{0, 0, 0, 0}
+	white  = color.RGBA{255, 255, 255, 0}
+	gray   = color.RGBA{192, 192, 192, 0}
+	silver = color.RGBA{239, 239, 239, 0}
+	lite   = color.RGBA{224, 224, 224, 0}
+	red    = color.RGBA{255, 0, 0, 0}
 )
 
 var (
@@ -92,12 +93,12 @@ func (p *Palette) save() error {
 	return nil
 }
 
-func (p *Palette) DefaultAppRect() impress.Rect {
-	return impress.NewRect(0, 0, p.config.Window.Size.Width, p.config.Window.Size.Height)
+func (p *Palette) DefaultAppRect() image.Rectangle {
+	return image.Rect(0, 0, p.config.Window.Size.Width, p.config.Window.Size.Height)
 }
 
-func (p *Palette) Color(c ColorType) impress.Color {
-	return impress.Color(c)
+func (p *Palette) Color(c ColorType) color.Color {
+	return color.Color(c)
 }
 
 func (p *Palette) HorizontalBoxAlign() int {
@@ -159,7 +160,7 @@ func (p *Palette) HorizontalTextAlign() int {
 	return p.config.Fonts.Default.Align.Width
 }
 
-func (p *Palette) TextLinePoint(level int, lineno int) impress.Point {
+func (p *Palette) TextLinePoint(level int, lineno int) image.Point {
 	offset := 0
 	if lineno < 0 {
 		lineno = 0
@@ -167,15 +168,15 @@ func (p *Palette) TextLinePoint(level int, lineno int) impress.Point {
 	if lineno > 0 {
 		offset = (lineno) * p.TextLineOffset()
 	}
-	return impress.NewPoint(p.HorizontalTextAlign(), p.VerticalTextAlign()+p.DefaultFont().Height*lineno+offset)
+	return image.Pt(p.HorizontalTextAlign(), p.VerticalTextAlign()+p.DefaultFont().Height*lineno+offset)
 }
 
-func (p *Palette) CursorPoint() impress.Point {
-	return impress.NewPoint(0, p.TextLineOffset())
+func (p *Palette) CursorPoint() image.Point {
+	return image.Pt(0, p.TextLineOffset())
 }
 
-func (p *Palette) CursorSize() impress.Size {
-	return impress.NewSize(p.config.Fonts.Cursor.Width, p.DefaultFont().Height)
+func (p *Palette) CursorSize() image.Point {
+	return image.Pt(p.config.Fonts.Cursor.Width, p.DefaultFont().Height)
 }
 
 var once sync.Once
@@ -183,11 +184,7 @@ var font *impress.Font
 
 func (p *Palette) DefaultFont() *impress.Font {
 	once.Do(func() {
-		var err error
-		font, err = impress.NewFont(p.config.Fonts.Default.Family, p.config.Fonts.Default.Height)
-		if err != nil {
-			log.Fatalf("NewFont: %v", err)
-		}
+		font = impress.NewFont(p.config.Fonts.Default.Height, p.config.Fonts.Default.Attributes)
 	})
 	return font
 }

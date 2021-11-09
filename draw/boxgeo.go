@@ -1,7 +1,7 @@
 package draw
 
 import (
-	"github.com/codeation/impress"
+	"image"
 )
 
 func (b *Box) width() int {
@@ -12,8 +12,8 @@ func (b *Box) height() int {
 	return b.pal.BoxHeight(b.level, b.content.Lines())
 }
 
-func (b *Box) rect() impress.Rect {
-	return b.point.Size(impress.NewSize(b.width(), b.height()))
+func (b *Box) rect() image.Rectangle {
+	return image.Rect(b.point.X, b.point.Y, b.point.X+b.width(), b.point.Y+b.height())
 }
 
 func (b *Box) heightWithChilds() int {
@@ -81,53 +81,53 @@ func (b *Box) SplitLeftRight() {
 	}
 }
 
-func (b *Box) GetOffset(windowSize impress.Size, offset impress.Point) impress.Point {
+func (b *Box) GetOffset(windowSize image.Point, offset image.Point) image.Point {
 	rect := b.rect()
 	x := offset.X
-	right := x + rect.X + rect.Width
-	if right > windowSize.Width-b.pal.HorizontalBoxAlign() {
-		x += windowSize.Width - b.pal.HorizontalBoxAlign() - right
+	right := x + rect.Max.X
+	if right > windowSize.X-b.pal.HorizontalBoxAlign() {
+		x += windowSize.X - b.pal.HorizontalBoxAlign() - right
 	}
-	left := x + rect.X
+	left := x + rect.Min.X
 	if left < b.pal.HorizontalBoxAlign() {
 		x += b.pal.HorizontalBoxAlign() - left
 	}
 
 	y := offset.Y
-	bottom := y + rect.Y + rect.Height
-	if bottom > windowSize.Height-b.pal.VerticalBoxAlign() {
-		y += windowSize.Height - b.pal.VerticalBoxAlign() - bottom
+	bottom := y + rect.Max.Y
+	if bottom > windowSize.Y-b.pal.VerticalBoxAlign() {
+		y += windowSize.Y - b.pal.VerticalBoxAlign() - bottom
 	}
-	top := y + rect.Y
+	top := y + rect.Min.Y
 	if top < b.pal.VerticalBoxAlign() {
 		y += b.pal.VerticalBoxAlign() - top
 	}
 
-	return impress.NewPoint(x, y)
+	return image.Pt(x, y)
 }
 
 func (b *Box) getEdge(left, top, right, bottom int) (int, int, int, int) {
 	rect := b.rect()
-	left, top, right, bottom = minInt(left, rect.X), minInt(top, rect.Y),
-		maxInt(right, rect.X+rect.Width), maxInt(bottom, rect.Y+rect.Height)
+	left, top, right, bottom = minInt(left, rect.Min.X), minInt(top, rect.Min.Y),
+		maxInt(right, rect.Max.X), maxInt(bottom, rect.Max.Y)
 	for _, child := range b.childs {
 		left, top, right, bottom = child.getEdge(left, top, right, bottom)
 	}
 	return left, top, right, bottom
 }
 
-func (b *Box) getEdgeSize() impress.Size {
+func (b *Box) getEdgeSize() image.Point {
 	rect := b.rect()
-	left, top, right, bottom := rect.X, rect.Y, rect.X+rect.Width, rect.Y+rect.Height
+	left, top, right, bottom := rect.Min.X, rect.Min.Y, rect.Max.X, rect.Max.Y
 	left, top, right, bottom = b.getEdge(left, top, right, bottom)
-	return impress.NewSize(right-left, bottom-top)
+	return image.Pt(right-left, bottom-top)
 }
 
-func (b *Box) Fit(windowSize impress.Size, offset impress.Point) impress.Point {
+func (b *Box) Fit(windowSize image.Point, offset image.Point) image.Point {
 	mapSize := b.getEdgeSize()
 
 	x := offset.X
-	tailX := mapSize.Width + 2*b.pal.HorizontalBoxAlign() - windowSize.Width
+	tailX := mapSize.X + 2*b.pal.HorizontalBoxAlign() - windowSize.X
 	if tailX <= 0 {
 		x = 0
 	} else if x < 0 && -x > tailX/2 {
@@ -137,7 +137,7 @@ func (b *Box) Fit(windowSize impress.Size, offset impress.Point) impress.Point {
 	}
 
 	y := offset.Y
-	tailY := mapSize.Height + 2*b.pal.VerticalBoxAlign() - windowSize.Height
+	tailY := mapSize.Y + 2*b.pal.VerticalBoxAlign() - windowSize.Y
 	if tailY <= 0 {
 		y = 0
 	} else if y < 0 && -y > tailY {
@@ -146,5 +146,5 @@ func (b *Box) Fit(windowSize impress.Size, offset impress.Point) impress.Point {
 		y = tailY
 	}
 
-	return impress.NewPoint(x, y)
+	return image.Pt(x, y)
 }

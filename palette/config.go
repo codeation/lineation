@@ -27,10 +27,10 @@ type configFonts struct {
 }
 
 type configFont struct {
-	Family string     `json:"family"`
-	Height int        `json:"height"`
-	Align  configSize `json:"align"`
-	Offset int        `json:"offset"`
+	Height     int               `json:"height"`
+	Attributes map[string]string `json:"attributes"`
+	Align      configSize        `json:"align"`
+	Offset     int               `json:"offset"`
 }
 
 type configCursor struct {
@@ -48,8 +48,11 @@ func defaultConfig() *Config {
 			Widths: [3]int{100, 140, 300},
 		},
 		Fonts: configFonts{
-			Default: configFont{Family: `{"family":"Verdana"}`, Height: 12, Align: configSize{Width: 10, Height: 6}, Offset: 2},
-			Cursor:  configCursor{Width: 2},
+			Default: configFont{
+				Attributes: map[string]string{"family": "Verdana"},
+				Height:     12,
+				Align:      configSize{Width: 10, Height: 6}, Offset: 2},
+			Cursor: configCursor{Width: 2},
 		},
 	}
 }
