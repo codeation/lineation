@@ -27,7 +27,7 @@ func (c *Control) do(action event.Eventer) {
 		c.view.KeyUp()
 	case action.Type() == event.ButtonType:
 		buttonEvent := action.(event.Button)
-		if buttonEvent.Action == event.ButtonActionRelease && buttonEvent.Button == event.ButtonLeft {
+		if buttonEvent.Action == event.ButtonActionPress && buttonEvent.Button == event.ButtonLeft {
 			c.view.Click(buttonEvent.Point)
 		}
 

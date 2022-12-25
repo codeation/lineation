@@ -14,10 +14,10 @@ type Wrap struct {
 
 func NewWrap(text string, splitter splitter, edge int) *Wrap {
 	return &Wrap{
-		Runes:    NewRunes(text),
-		splitter: splitter,
-		edge:     edge,
-		texts:    splitter.Split(text, edge),
+		Runes:     NewRunes(text),
+		splitter:  splitter,
+		edge:      edge,
+		needSplit: true,
 	}
 }
 

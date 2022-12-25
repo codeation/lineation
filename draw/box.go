@@ -3,40 +3,69 @@ package draw
 import (
 	"image"
 
+	"github.com/codeation/impress"
 	"github.com/codeation/lineation/mindmap"
 	"github.com/codeation/lineation/palette"
-	"github.com/codeation/lineation/wrap"
+	"github.com/codeation/lineation/text"
 )
 
 type Box struct {
-	content          *wrap.Wrap
-	point            image.Point
-	warpRow, warpCol int
-	warpTextSize     image.Point
-	level            int
-	isActive         bool
-	isRight          bool
-	parent           *Box
-	next, prev       *Box
-	childs           []*Box
-	pal              *palette.Palette
+	textBox      *text.Text
+	textOption   *text.TextOption
+	cursorOption *text.CursorOption
+	point        image.Point
+	level        int
+	isActive     bool
+	isRight      bool
+	parent       *Box
+	next, prev   *Box
+	childs       []*Box
+	pal          *palette.Palette
+	canvas       *impress.Application
 }
 
-func NewBox(root *mindmap.Node, pal *palette.Palette) *Box {
-	return newBoxNode(root, nil, 1, pal)
+func NewBox(root *mindmap.Node, canvas *impress.Application, pal *palette.Palette) *Box {
+	return newBoxNode(root, nil, 1, canvas, pal)
 }
 
-func newBoxNode(node *mindmap.Node, parent *Box, level int, pal *palette.Palette) *Box {
-	b := &Box{
-		content:  wrap.NewWrap(node.Text, pal.DefaultFont(), pal.BoxWidth(level)-pal.HorizontalTextAlign()*2),
-		parent:   parent,
-		level:    level,
-		pal:      pal,
-		isActive: level == 1,
+func newTextOption(level int, pal *palette.Palette) *text.TextOption {
+	return &text.TextOption{
+		Font:       pal.DefaultFont(),
+		LineHeight: pal.DefaultFont().Height + pal.TextLineOffset(),
+		Margin:     image.Pt(pal.HorizontalTextAlign(), pal.VerticalTextAlign()),
+		Size:       image.Pt(pal.BoxWidth(level), 100),
+		Foreground: pal.Color(palette.DefaultText),
+		Background: pal.Color(palette.ActiveBoxBackground),
+		Border:     pal.Color(palette.ActiveEdge),
 	}
-	b.content.End()
+}
+
+func newCursorOption(pal *palette.Palette) *text.CursorOption {
+	return &text.CursorOption{
+		Foreground: pal.Color(palette.CursorBlock),
+		Size:       pal.CursorSize(),
+	}
+}
+
+func newBoxNode(node *mindmap.Node, parent *Box, level int, canvas *impress.Application, pal *palette.Palette) *Box {
+	textOption := newTextOption(level, pal)
+	cursorOption := newCursorOption(pal)
+	textBox := text.NewText(canvas, image.Pt(40, 40), node.Text,
+		text.NewSimpleTextOption(textOption),
+		text.NewSimpleCursorOption(cursorOption))
+	b := &Box{
+		textBox:      textBox,
+		textOption:   textOption,
+		cursorOption: cursorOption,
+		parent:       parent,
+		level:        level,
+		pal:          pal,
+		isActive:     level == 1,
+		canvas:       canvas,
+	}
+	b.textBox.End()
 	for _, child := range node.Childs {
-		b.childs = append(b.childs, newBoxNode(child, b, level+1, pal))
+		b.childs = append(b.childs, newBoxNode(child, b, level+1, canvas, pal))
 	}
 	for i := range b.childs {
 		if i > 0 {
@@ -51,7 +80,7 @@ func newBoxNode(node *mindmap.Node, parent *Box, level int, pal *palette.Palette
 
 func (b *Box) GetNodes() *mindmap.Node {
 	node := &mindmap.Node{
-		Text: b.content.String(),
+		Text: b.textBox.String(),
 	}
 	for _, child := range b.childs {
 		node.Childs = append(node.Childs, child.GetNodes())
@@ -60,11 +89,20 @@ func (b *Box) GetNodes() *mindmap.Node {
 }
 
 func (b *Box) AddChildNode() *Box {
+	textOption := newTextOption(b.level+1, b.pal)
+	cursorOption := newCursorOption(b.pal)
+	textBox := text.NewText(b.canvas, image.Pt(40, 40), "",
+		text.NewSimpleTextOption(textOption),
+		text.NewSimpleCursorOption(cursorOption))
+
 	next := &Box{
-		content: wrap.NewWrap("", b.pal.DefaultFont(), b.pal.BoxWidth(b.level+1)-b.pal.HorizontalTextAlign()*2),
-		parent:  b,
-		level:   b.level + 1,
-		pal:     b.pal,
+		textOption:   textOption,
+		cursorOption: cursorOption,
+		textBox:      textBox,
+		parent:       b,
+		level:        b.level + 1,
+		pal:          b.pal,
+		canvas:       b.canvas,
 	}
 	if len(b.childs) == 0 {
 		b.childs = []*Box{next}
@@ -77,13 +115,21 @@ func (b *Box) AddChildNode() *Box {
 }
 
 func (b *Box) AddNextNode() *Box {
+	textOption := newTextOption(b.level, b.pal)
+	cursorOption := newCursorOption(b.pal)
+	textBox := text.NewText(b.canvas, image.Pt(40, 40), "",
+		text.NewSimpleTextOption(textOption),
+		text.NewSimpleCursorOption(cursorOption))
 	next := &Box{
-		content: wrap.NewWrap("", b.pal.DefaultFont(), b.pal.BoxWidth(b.level)-b.pal.HorizontalTextAlign()*2),
-		parent:  b.parent,
-		level:   b.level,
-		pal:     b.pal,
-		prev:    b,
-		next:    b.next,
+		textOption:   textOption,
+		cursorOption: cursorOption,
+		textBox:      textBox,
+		parent:       b.parent,
+		level:        b.level,
+		pal:          b.pal,
+		prev:         b,
+		next:         b.next,
+		canvas:       b.canvas,
 	}
 	if b.next != nil {
 		b.next.prev = next
@@ -119,13 +165,22 @@ func (b *Box) DeleteNode() *Box {
 	if b.next != nil {
 		b.next.prev = b.prev
 	}
+	b.deleteChildNodes()
+	b.textBox.Drop()
 	return next
 }
 
+func (b *Box) deleteChildNodes() {
+	for _, child := range b.childs {
+		child.deleteChildNodes()
+		child.textBox.Drop()
+	}
+}
+
 func (b *Box) Insert(alpha rune) {
-	b.content.Insert(alpha)
+	b.textBox.Insert(alpha)
 }
 
 func (b *Box) Backspace() bool {
-	return b.content.Backspace()
+	return b.textBox.Backspace()
 }

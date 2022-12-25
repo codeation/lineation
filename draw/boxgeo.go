@@ -9,7 +9,7 @@ func (b *Box) width() int {
 }
 
 func (b *Box) height() int {
-	return b.pal.BoxHeight(b.level, b.content.Lines())
+	return b.pal.BoxHeight(b.level, b.textBox.Lines())
 }
 
 func (b *Box) rect() image.Rectangle {

@@ -66,7 +66,6 @@ func (v *View) ReDraw() {
 	v.rootBox.Align(image.Pt(v.windowSize.X/2, 20))
 	nextOffset := v.activeBox.GetOffset(v.windowSize, v.offset)
 	nextOffset = v.rootBox.Fit(v.windowSize, nextOffset)
-	v.activeBox.WarpText()
 	v.w.Clear()
 	if nextOffset != v.offset {
 		v.animeOffset(nextOffset)
@@ -123,7 +122,7 @@ func (v *View) Click(point image.Point) {
 }
 
 func (v *View) KeyLeft() {
-	ok := v.activeBox.content.Left()
+	ok := v.activeBox.textBox.Left()
 	if !ok {
 		return
 	}
@@ -131,7 +130,7 @@ func (v *View) KeyLeft() {
 }
 
 func (v *View) KeyRight() {
-	ok := v.activeBox.content.Right()
+	ok := v.activeBox.textBox.Right()
 	if !ok {
 		return
 	}
@@ -139,7 +138,7 @@ func (v *View) KeyRight() {
 }
 
 func (v *View) RemoveLastChar() {
-	ok := v.activeBox.Backspace()
+	ok := v.activeBox.textBox.Backspace()
 	if !ok {
 		return
 	}
@@ -147,7 +146,7 @@ func (v *View) RemoveLastChar() {
 }
 
 func (v *View) InsertChar(alpha rune) {
-	v.activeBox.Insert(alpha)
+	v.activeBox.textBox.Insert(alpha)
 	v.QueueDraw()
 }
 

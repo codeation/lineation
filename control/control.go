@@ -9,16 +9,16 @@ import (
 )
 
 type Control struct {
-	eventChan <-chan event.Eventer
-	view      *draw.View
-	mm        *mindmap.MindMap
+	app  *impress.Application
+	view *draw.View
+	mm   *mindmap.MindMap
 }
 
 func NewControl(app *impress.Application, v *draw.View, mm *mindmap.MindMap) *Control {
 	c := &Control{
-		eventChan: app.Chan(),
-		view:      v,
-		mm:        mm,
+		app:  app,
+		view: v,
+		mm:   mm,
 	}
 	return c
 }
@@ -28,14 +28,18 @@ func (c *Control) Done() {
 
 func (c *Control) Loop() {
 	for {
-		action := <-c.eventChan
+		if len(c.app.Chan()) == 0 {
+			c.app.Sync()
+		}
+
+		action := <-c.app.Chan()
 		if action == event.DestroyEvent || action == event.KeyExit {
 			return
 		}
 
 		c.do(action)
 
-		if len(c.eventChan) == 0 {
+		if len(c.app.Chan()) == 0 {
 			c.background()
 		}
 	}

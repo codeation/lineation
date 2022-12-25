@@ -4,7 +4,7 @@ import "image"
 
 func (b *Box) SetActive(isActive bool) {
 	if !b.isActive {
-		b.content.End()
+		b.textBox.End()
 	}
 	b.isActive = isActive
 }

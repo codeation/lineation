@@ -20,9 +20,9 @@ func NewApplication(mm *mindmap.MindMap) *Application {
 	guiApp := impress.NewApplication(pal.DefaultAppRect(), "lineation "+mm.Filename())
 	w := guiApp.NewWindow(pal.DefaultAppRect(), pal.Color(palette.DefaultBackground))
 
-	root := draw.NewBox(mm.Root(), pal)
-	v := draw.NewView(w, root)
+	root := draw.NewBox(mm.Root(), guiApp, pal)
 
+	v := draw.NewView(w, root)
 	c := control.NewControl(guiApp, v, mm)
 
 	return &Application{

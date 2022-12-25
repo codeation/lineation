@@ -29,41 +29,20 @@ func (b *Box) Align(since image.Point) {
 	}
 }
 
-func (b *Box) WarpText() {
-	row, col := b.content.Cursor()
-	if b.warpRow != row || b.warpCol != col {
-		b.warpTextSize = b.pal.DefaultFont().Size(b.content.Line(row)[:col])
-		b.warpRow = row
-		b.warpCol = col
-	}
-}
-
 func (b *Box) Draw(w *impress.Window, offset image.Point) {
 	rect := b.rect()
 	if b.isActive {
-		w.Fill(rect.Add(offset), b.pal.Color(palette.ActiveBoxBackground))
-		drawutil.DrawRectEdge(w, rect.Add(offset), b.pal.Color(palette.ActiveEdge))
+		b.textOption.Background = b.pal.Color(palette.ActiveBoxBackground)
+		b.textOption.Border = b.pal.Color(palette.ActiveEdge)
+		b.cursorOption.Enable = true
 	} else {
-		drawutil.DrawRectEdge(w, rect.Add(offset), b.pal.Color(palette.DefaultEdge))
+		b.textOption.Background = b.pal.Color(palette.DefaultBackground)
+		b.textOption.Border = b.pal.Color(palette.DefaultEdge)
+		b.cursorOption.Enable = false
 	}
-	if b.isActive {
-		cursorPoint := rect.Min.
-			Add(offset).
-			Add(b.pal.TextLinePoint(b.level, b.warpRow)).
-			Add(image.Pt(b.warpTextSize.X, 0))
-		w.Fill(
-			image.Rect(0, 0, b.pal.CursorSize().X, b.pal.CursorSize().Y).
-				Add(cursorPoint).
-				Add(b.pal.CursorPoint()),
-			b.pal.Color(palette.CursorBlock))
-	}
-	for i := 0; i < b.content.Lines(); i++ {
-		w.Text(b.content.Line(i), b.pal.DefaultFont(),
-			rect.Min.
-				Add(offset).
-				Add(b.pal.TextLinePoint(b.level, i)),
-			b.pal.Color(palette.DefaultText))
-	}
+	b.textOption.Size = rect.Size()
+	b.textBox.Move(rect.Min)
+	b.textBox.Show()
 	b.drawLine(w, offset, b.pal.Color(palette.DefaultLine))
 	for _, child := range b.childs {
 		child.Draw(w, offset)
