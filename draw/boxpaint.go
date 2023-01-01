@@ -10,8 +10,13 @@ import (
 	"github.com/codeation/lineation/palette"
 )
 
-func (b *Box) Align(since image.Point) {
-	b.point = since.Add(image.Pt(-b.width()/2, 0))
+func (b *Box) Align(since image.Point) bool {
+	shifted := false
+	boxPoint := since.Add(image.Pt(-b.width()/2, 0))
+	if b.point != boxPoint {
+		shifted = true
+		b.point = boxPoint
+	}
 	left := since.Add(image.Pt(-b.pal.HorizontalBoxOffset(b.level+1), 0))
 	right := since.Add(image.Pt(b.pal.HorizontalBoxOffset(b.level+1), 0))
 	if b.level > 2 {
@@ -20,16 +25,19 @@ func (b *Box) Align(since image.Point) {
 	}
 	for _, child := range b.childs {
 		if child.IsRight() {
-			child.Align(right)
+			childShifted := child.Align(right)
+			shifted = shifted || childShifted
 			right = right.Add(image.Pt(0, child.heightWithChilds()+b.pal.VerticalBoxOffset()))
 		} else {
-			child.Align(left)
+			childShifted := child.Align(left)
+			shifted = shifted || childShifted
 			left = left.Add(image.Pt(0, child.heightWithChilds()+b.pal.VerticalBoxOffset()))
 		}
 	}
+	return shifted
 }
 
-func (b *Box) Draw(w *impress.Window, offset image.Point) {
+func (b *Box) Draw(w *impress.Window, offset image.Point, drawLines bool) {
 	rect := b.rect()
 	if b.isActive {
 		b.textOption.Background = b.pal.Color(palette.ActiveBoxBackground)
@@ -43,9 +51,11 @@ func (b *Box) Draw(w *impress.Window, offset image.Point) {
 	b.textOption.Size = rect.Size()
 	b.textBox.Move(rect.Min.Add(offset))
 	b.textBox.Show()
-	b.drawLine(w, offset, b.pal.Color(palette.DefaultLine))
+	if drawLines {
+		b.drawLine(w, offset, b.pal.Color(palette.DefaultLine))
+	}
 	for _, child := range b.childs {
-		child.Draw(w, offset)
+		child.Draw(w, offset, drawLines)
 	}
 }
 

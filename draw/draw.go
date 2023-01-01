@@ -46,9 +46,14 @@ func (v *View) animeOffset(nextOffset image.Point) {
 	for i := 1; i < steps; i++ {
 		tempOffset := image.Pt((nextOffset.X*i+v.offset.X*(steps-i))/steps,
 			(nextOffset.Y*i+v.offset.Y*(steps-i))/steps)
-		v.rootBox.Draw(v.w, tempOffset)
+		v.rootBox.Draw(v.w, tempOffset, true)
 		v.w.Show()
-		time.Sleep(animeDuration / steps)
+		since := time.Now()
+		v.rootBox.canvas.Sync()
+		remains := animeDuration/steps - time.Since(since)
+		if remains > 0 {
+			time.Sleep(remains)
+		}
 		v.w.Clear()
 	}
 }
@@ -62,21 +67,25 @@ func (v *View) ReDraw() {
 		return
 	}
 	v.markRedraw = false
-	v.rootBox.SplitLeftRight()
-	v.rootBox.Align(image.Pt(v.windowSize.X/2, v.rootBox.pal.VerticalBoxAlign()))
+	shifted := v.rootBox.SplitLeftRight()
+	aligned := v.rootBox.Align(image.Pt(v.windowSize.X/2, v.rootBox.pal.VerticalBoxAlign()))
 	nextOffset := v.activeBox.GetOffset(v.windowSize, v.offset)
 	nextOffset = v.rootBox.Fit(v.windowSize, nextOffset)
-	v.w.Clear()
-	if nextOffset != v.offset {
-		v.animeOffset(nextOffset)
+	shifted = shifted || aligned || v.offset != nextOffset
+	if shifted {
+		v.w.Clear()
+		if nextOffset != v.offset {
+			v.animeOffset(nextOffset)
+		}
+		v.offset = nextOffset
 	}
-	v.offset = nextOffset
-	v.rootBox.Draw(v.w, v.offset)
-	if v.isModified {
-		v.w.Fill(image.Rect(2, 2, 8, 8), v.rootBox.pal.Color(palette.ActiveEdge))
+	v.rootBox.Draw(v.w, v.offset, shifted)
+	if shifted {
+		if v.isModified {
+			v.w.Fill(image.Rect(2, 2, 8, 8), v.rootBox.pal.Color(palette.ActiveEdge))
+		}
+		v.w.Show()
 	}
-	v.w.Show()
-	time.Sleep(10 * time.Millisecond)
 }
 
 func (v *View) ConfigureSize(size image.Point) {

@@ -42,12 +42,14 @@ func (b *Box) heightOfChilds() int {
 	return output
 }
 
-func (b *Box) SplitLeftRight() {
+func (b *Box) SplitLeftRight() bool {
+	shifted := false
 	if len(b.childs) < 2 {
 		for i := range b.childs {
+			shifted = shifted || !b.childs[i].isRight
 			b.childs[i].isRight = true
 		}
-		return
+		return shifted
 	}
 
 	heights := make([]int, len(b.childs))
@@ -77,8 +79,10 @@ func (b *Box) SplitLeftRight() {
 	}
 
 	for i := range b.childs {
+		shifted = shifted || b.childs[i].isRight != (i >= minPos)
 		b.childs[i].isRight = i >= minPos
 	}
+	return shifted
 }
 
 func (b *Box) GetOffset(windowSize image.Point, offset image.Point) image.Point {

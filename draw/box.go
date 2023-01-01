@@ -141,6 +141,7 @@ func (b *Box) DeleteNode() *Box {
 	}
 	b.parent.childs = childs
 	b.deleteChildNodes()
+	b.parent.point = image.Point{}
 	b.textBox.Drop()
 	if nextPos < len(b.parent.childs) {
 		return b.parent.childs[nextPos]

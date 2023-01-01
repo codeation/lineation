@@ -31,12 +31,14 @@ type option struct {
 }
 
 type Text struct {
-	content  *wrap.Wrap
-	option   *option
-	window   *impress.Window
-	size     image.Point
-	row, col int
-	enable   bool
+	content    *wrap.Wrap
+	option     *option
+	window     *impress.Window
+	windowRect image.Rectangle
+	textSize   image.Point
+	row, col   int
+	enable     bool
+	lineSize   image.Point
 }
 
 func NewText(app *impress.Application, from image.Point, text string,
@@ -48,13 +50,15 @@ func NewText(app *impress.Application, from image.Point, text string,
 	}
 	content := wrap.NewWrap(text, option.Text.Font(), option.Text.Size().X-option.Text.Margin().X*2)
 	content.End()
-	size := image.Pt(option.Text.Size().X, option.Text.LineHeight()*1+option.Text.Margin().Y*2)
-	window := app.NewWindow(image.Rectangle{Min: from, Max: from.Add(size)}, option.Text.Background())
+	textSize := image.Pt(option.Text.Size().X, option.Text.LineHeight()*1+option.Text.Margin().Y*2)
+	windowRect := image.Rectangle{Min: from, Max: from.Add(textSize)}
+	window := app.NewWindow(windowRect, option.Text.Background())
 	return &Text{
-		content: content,
-		option:  option,
-		window:  window,
-		size:    size,
+		content:    content,
+		option:     option,
+		window:     window,
+		windowRect: windowRect,
+		textSize:   textSize,
 	}
 }
 
@@ -67,13 +71,12 @@ func (t *Text) Show() {
 	if t.row == row && t.col == col && t.enable == t.option.Cursor.Enable() {
 		return
 	}
+	if (t.row != row || t.col != col || (t.lineSize.X == 0 && col != 0)) && t.option.Cursor.Enable() {
+		t.lineSize = t.option.Text.Font().Size(t.content.Line(row)[:col])
+	}
 	t.row = row
 	t.col = col
 	t.enable = t.option.Cursor.Enable()
-	var size image.Point
-	if t.option.Cursor.Enable() {
-		size = t.option.Text.Font().Size(t.content.Line(row)[:col])
-	}
 	t.window.Clear()
 	drawutil.DrawRectEdge(
 		t.window,
@@ -87,7 +90,7 @@ func (t *Text) Show() {
 		t.option.Text.Background())
 
 	if t.option.Cursor.Enable() {
-		pt := t.option.Text.Margin().Add(image.Pt(size.X, (row+1)*t.option.Text.LineHeight()-t.option.Text.Font().Height))
+		pt := t.option.Text.Margin().Add(image.Pt(t.lineSize.X, (row+1)*t.option.Text.LineHeight()-t.option.Text.Font().Height))
 		t.window.Fill(image.Rectangle{Min: pt, Max: pt.Add(t.option.Cursor.Size())}, t.option.Cursor.Foreground())
 	}
 	for i := 0; i < t.content.Lines(); i++ {
@@ -101,5 +104,10 @@ func (t *Text) Show() {
 }
 
 func (t *Text) Move(to image.Point) {
-	t.window.Size(image.Rectangle{Min: to, Max: to.Add(t.option.Text.Size())})
+	windowRect := image.Rectangle{Min: to, Max: to.Add(t.option.Text.Size())}
+	if windowRect == t.windowRect {
+		return
+	}
+	t.windowRect = windowRect
+	t.window.Size(t.windowRect)
 }
