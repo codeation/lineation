@@ -18,7 +18,6 @@ type Box struct {
 	isActive     bool
 	isRight      bool
 	parent       *Box
-	next, prev   *Box
 	childs       []*Box
 	pal          *palette.Palette
 	canvas       *impress.Application
@@ -67,14 +66,6 @@ func newBoxNode(node *mindmap.Node, parent *Box, level int, canvas *impress.Appl
 	for _, child := range node.Childs {
 		b.childs = append(b.childs, newBoxNode(child, b, level+1, canvas, pal))
 	}
-	for i := range b.childs {
-		if i > 0 {
-			b.childs[i].prev = b.childs[i-1]
-		}
-		if i < len(b.childs)-1 {
-			b.childs[i].next = b.childs[i+1]
-		}
-	}
 	return b
 }
 
@@ -108,8 +99,6 @@ func (b *Box) AddChildNode() *Box {
 		b.childs = []*Box{next}
 		return next
 	}
-	next.next = b.childs[0]
-	b.childs[0].prev = next
 	b.childs = append([]*Box{next}, b.childs...)
 	return next
 }
@@ -127,47 +116,38 @@ func (b *Box) AddNextNode() *Box {
 		parent:       b.parent,
 		level:        b.level,
 		pal:          b.pal,
-		prev:         b,
-		next:         b.next,
 		canvas:       b.canvas,
 	}
-	if b.next != nil {
-		b.next.prev = next
-	}
-	b.next = next
 	childs := make([]*Box, 0, len(b.parent.childs)+1)
-	for node := b.parent.childs[0]; node != nil; node = node.next {
+	for _, node := range b.parent.childs {
 		childs = append(childs, node)
+		if node == b {
+			childs = append(childs, next)
+		}
 	}
 	b.parent.childs = childs
 	return next
 }
 
 func (b *Box) DeleteNode() *Box {
-	next := b.next
-	if next == nil {
-		next = b.prev
-	}
-	if next == nil {
-		next = b.parent
-	}
+	var nextPos int
 	childs := make([]*Box, 0, len(b.parent.childs)-1)
-	for node := b.parent.childs[0]; node != nil; node = node.next {
+	for i, node := range b.parent.childs {
 		if node == b {
+			nextPos = i
 			continue
 		}
 		childs = append(childs, node)
 	}
 	b.parent.childs = childs
-	if b.prev != nil {
-		b.prev.next = b.next
-	}
-	if b.next != nil {
-		b.next.prev = b.prev
-	}
 	b.deleteChildNodes()
 	b.textBox.Drop()
-	return next
+	if nextPos < len(b.parent.childs) {
+		return b.parent.childs[nextPos]
+	} else if len(b.parent.childs) > 0 {
+		return b.parent.childs[len(b.parent.childs)-1]
+	}
+	return b.parent
 }
 
 func (b *Box) deleteChildNodes() {

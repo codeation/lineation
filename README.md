@@ -2,14 +2,14 @@
 
 Mind mapping application
 
-![simple screenshot](https://codeation.github.io/pages/images/lineation-test.png)
+![demo screenshot](https://codeation.github.io/pages/images/lineation-test.png)
 
-## Proof of Concept Version
+## Alpha Version
 
 Notes:
 
-- This project is still in the early stages of development and is not yet in a usable state.
-- The project tested on Debian 11.1 and macOS Big Sur (11.5)
+- This project is still in the early stages of development.
+- The project tested on Debian 11.6 and macOS Big Sur (11.5)
 
 ## Driver installation
 

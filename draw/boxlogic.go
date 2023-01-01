@@ -9,13 +9,42 @@ func (b *Box) SetActive(isActive bool) {
 	b.isActive = isActive
 }
 
+func (b *Box) prev() *Box {
+	if b.parent == nil {
+		return nil
+	}
+	for i, node := range b.parent.childs {
+		if node == b {
+			if i > 0 {
+				return b.parent.childs[i-1]
+			}
+			break
+		}
+	}
+	return nil
+}
+
+func (b *Box) next() *Box {
+	if b.parent == nil {
+		return nil
+	}
+	for i, node := range b.parent.childs {
+		if node == b {
+			if i < len(b.parent.childs)-1 {
+				return b.parent.childs[i+1]
+			}
+		}
+	}
+	return nil
+}
+
 func (b *Box) down() *Box {
 	if len(b.childs) != 0 {
 		return b.childs[0]
 	}
 	for cursor := b; cursor != nil; {
-		if cursor.next != nil {
-			return cursor.next
+		if next := cursor.next(); next != nil {
+			return next
 		}
 		cursor = cursor.parent
 	}
@@ -23,10 +52,10 @@ func (b *Box) down() *Box {
 }
 
 func (b *Box) up() *Box {
-	if b.prev == nil {
+	cursor := b.prev()
+	if cursor == nil {
 		return b.parent
 	}
-	cursor := b.prev
 	for len(cursor.childs) != 0 {
 		cursor = cursor.childs[len(cursor.childs)-1]
 	}
