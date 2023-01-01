@@ -41,7 +41,7 @@ func (b *Box) Draw(w *impress.Window, offset image.Point) {
 		b.cursorOption.Enable = false
 	}
 	b.textOption.Size = rect.Size()
-	b.textBox.Move(rect.Min)
+	b.textBox.Move(rect.Min.Add(offset))
 	b.textBox.Show()
 	b.drawLine(w, offset, b.pal.Color(palette.DefaultLine))
 	for _, child := range b.childs {

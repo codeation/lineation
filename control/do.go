@@ -19,7 +19,7 @@ func (c *Control) do(action event.Eventer) {
 
 	case action.Type() == event.ConfigureType:
 		configureEvent := action.(event.Configure)
-		c.view.ConfigureSize(configureEvent.Size)
+		c.view.ConfigureSize(configureEvent.InnerSize)
 
 	case action == event.KeyDown:
 		c.view.KeyDown()

@@ -106,44 +106,39 @@ func (b *Box) GetOffset(windowSize image.Point, offset image.Point) image.Point 
 	return image.Pt(x, y)
 }
 
-func (b *Box) getEdge(left, top, right, bottom int) (int, int, int, int) {
+func (b *Box) getEdge(current image.Rectangle) image.Rectangle {
 	rect := b.rect()
-	left, top, right, bottom = minInt(left, rect.Min.X), minInt(top, rect.Min.Y),
-		maxInt(right, rect.Max.X), maxInt(bottom, rect.Max.Y)
+	output := image.Rect(minInt(current.Min.X, rect.Min.X), minInt(current.Min.Y, rect.Min.Y),
+		maxInt(current.Max.X, rect.Max.X), maxInt(current.Max.Y, rect.Max.Y))
 	for _, child := range b.childs {
-		left, top, right, bottom = child.getEdge(left, top, right, bottom)
+		output = child.getEdge(output)
 	}
-	return left, top, right, bottom
-}
-
-func (b *Box) getEdgeSize() image.Point {
-	rect := b.rect()
-	left, top, right, bottom := rect.Min.X, rect.Min.Y, rect.Max.X, rect.Max.Y
-	left, top, right, bottom = b.getEdge(left, top, right, bottom)
-	return image.Pt(right-left, bottom-top)
+	return output
 }
 
 func (b *Box) Fit(windowSize image.Point, offset image.Point) image.Point {
-	mapSize := b.getEdgeSize()
+	mapRect := b.getEdge(b.rect())
 
 	x := offset.X
-	tailX := mapSize.X + 2*b.pal.HorizontalBoxAlign() - windowSize.X
-	if tailX <= 0 {
-		x = 0
-	} else if x < 0 && -x > tailX/2 {
-		x = -tailX / 2
-	} else if x > 0 && x > tailX/2 {
-		x = tailX / 2
+	if mapRect.Dx() <= windowSize.X-2*b.pal.HorizontalBoxAlign() {
+		if mapRect.Min.X < b.pal.HorizontalBoxAlign() {
+			x = b.pal.HorizontalBoxAlign() - mapRect.Min.X
+		} else if mapRect.Max.X > windowSize.X-b.pal.HorizontalBoxAlign() {
+			x = windowSize.X - b.pal.HorizontalBoxAlign() - mapRect.Max.X
+		} else {
+			x = 0
+		}
+	} else if x < 0 && x < windowSize.X-b.pal.HorizontalBoxAlign()-mapRect.Max.X {
+		x = windowSize.X - b.pal.HorizontalBoxAlign() - mapRect.Max.X
+	} else if x > 0 && x > b.pal.HorizontalBoxAlign()-mapRect.Min.X {
+		x = b.pal.HorizontalBoxAlign() - mapRect.Min.X
 	}
 
 	y := offset.Y
-	tailY := mapSize.Y + 2*b.pal.VerticalBoxAlign() - windowSize.Y
-	if tailY <= 0 {
+	if mapRect.Max.Y < windowSize.Y-b.pal.VerticalBoxAlign() {
 		y = 0
-	} else if y < 0 && -y > tailY {
-		y = -tailY
-	} else if y > 0 && y > tailY {
-		y = tailY
+	} else if y < 0 && y < windowSize.Y-b.pal.VerticalBoxAlign()-mapRect.Max.Y {
+		y = windowSize.Y - b.pal.VerticalBoxAlign() - mapRect.Max.Y
 	}
 
 	return image.Pt(x, y)

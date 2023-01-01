@@ -63,7 +63,7 @@ func (v *View) ReDraw() {
 	}
 	v.markRedraw = false
 	v.rootBox.SplitLeftRight()
-	v.rootBox.Align(image.Pt(v.windowSize.X/2, 20))
+	v.rootBox.Align(image.Pt(v.windowSize.X/2, v.rootBox.pal.VerticalBoxAlign()))
 	nextOffset := v.activeBox.GetOffset(v.windowSize, v.offset)
 	nextOffset = v.rootBox.Fit(v.windowSize, nextOffset)
 	v.w.Clear()
