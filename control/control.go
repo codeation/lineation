@@ -5,6 +5,7 @@ import (
 	"github.com/codeation/impress/event"
 
 	"github.com/codeation/lineation/draw"
+	"github.com/codeation/lineation/menu"
 	"github.com/codeation/lineation/mindmap"
 )
 
@@ -33,7 +34,7 @@ func (c *Control) Loop() {
 		}
 
 		action := <-c.app.Chan()
-		if action == event.DestroyEvent || action == event.KeyExit {
+		if action == event.DestroyEvent || action == event.KeyExit || action == menu.Exit {
 			return
 		}
 

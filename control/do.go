@@ -5,12 +5,13 @@ import (
 
 	"github.com/codeation/impress/event"
 
+	"github.com/codeation/lineation/menu"
 	"github.com/codeation/lineation/mindmap"
 )
 
 func (c *Control) do(action event.Eventer) {
 	switch {
-	case action == event.KeySave:
+	case action == event.KeySave || action == menu.Save:
 		mm := mindmap.NewMindMap(c.mm.Filename(), c.view.GetNodes())
 		if err := mm.Save(); err != nil {
 			fmt.Printf("save: %v\n", err)
@@ -32,13 +33,13 @@ func (c *Control) do(action event.Eventer) {
 			c.dragDrop(buttonEvent)
 		}
 
-	case action == event.KeyTab:
+	case action == event.KeyTab || action == menu.NewChild:
 		c.view.AddChildNode(c.app)
 		c.view.Modified(true)
-	case action == event.KeyEnter:
+	case action == event.KeyEnter || action == menu.NewNext:
 		c.view.AddNextNode(c.app)
 		c.view.Modified(true)
-	case action == event.KeyDelete:
+	case action == event.KeyDelete || action == menu.Delete:
 		c.view.DeleteNode()
 		c.view.Modified(true)
 
