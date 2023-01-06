@@ -4,19 +4,24 @@ type splitter interface {
 	Split(text string, edge int) []string
 }
 
+type edger interface {
+	Edge() int
+}
+
 type Wrap struct {
 	*Runes
 	splitter  splitter
-	edge      int
+	edger     edger
 	texts     []string
 	needSplit bool
+	lastEdge  int
 }
 
-func NewWrap(text string, splitter splitter, edge int) *Wrap {
+func NewWrap(text string, splitter splitter, edger edger) *Wrap {
 	return &Wrap{
 		Runes:     NewRunes(text),
 		splitter:  splitter,
-		edge:      edge,
+		edger:     edger,
 		needSplit: true,
 	}
 }
@@ -26,10 +31,11 @@ func (w *Wrap) enqueueSplit() {
 }
 
 func (w *Wrap) ensureSplit() {
-	if !w.needSplit {
+	if !w.needSplit && w.lastEdge == w.edger.Edge() {
 		return
 	}
-	w.texts = w.splitter.Split(w.Runes.String(), w.edge)
+	w.lastEdge = w.edger.Edge()
+	w.texts = w.splitter.Split(w.Runes.String(), w.lastEdge)
 	w.needSplit = false
 }
 

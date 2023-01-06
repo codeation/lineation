@@ -1,15 +1,19 @@
-package draw
+package box
 
 import (
 	"image"
 )
 
+func (b *Box) Point() image.Point {
+	return b.point
+}
+
 func (b *Box) width() int {
-	return b.pal.BoxWidth(b.level)
+	return b.pal.BoxWidth(b.level())
 }
 
 func (b *Box) height() int {
-	return b.pal.BoxHeight(b.level, b.textBox.Lines())
+	return b.pal.BoxHeight(b.level(), b.textBox.Lines())
 }
 
 func (b *Box) rect() image.Rectangle {
@@ -17,7 +21,7 @@ func (b *Box) rect() image.Rectangle {
 }
 
 func (b *Box) heightWithChilds() int {
-	switch b.level {
+	switch b.level() {
 	case 1:
 		return b.height()
 	case 2:

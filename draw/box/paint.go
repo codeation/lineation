@@ -1,4 +1,4 @@
-package draw
+package box
 
 import (
 	"image"
@@ -11,15 +11,19 @@ import (
 )
 
 func (b *Box) Align(since image.Point) bool {
+	level := b.level()
+	if level == 1 {
+		since = since.Add(image.Pt(0, b.pal.VerticalBoxAlign()))
+	}
 	shifted := false
 	boxPoint := since.Add(image.Pt(-b.width()/2, 0))
 	if b.point != boxPoint {
 		shifted = true
 		b.point = boxPoint
 	}
-	left := since.Add(image.Pt(-b.pal.HorizontalBoxOffset(b.level+1), 0))
-	right := since.Add(image.Pt(b.pal.HorizontalBoxOffset(b.level+1), 0))
-	if b.level > 2 {
+	left := since.Add(image.Pt(-b.pal.HorizontalBoxOffset(level+1), 0))
+	right := since.Add(image.Pt(b.pal.HorizontalBoxOffset(level+1), 0))
+	if level > 2 {
 		left = left.Add(image.Pt(0, b.height()+b.pal.VerticalBoxOffset()))
 		right = right.Add(image.Pt(0, b.height()+b.pal.VerticalBoxOffset()))
 	}
@@ -37,33 +41,30 @@ func (b *Box) Align(since image.Point) bool {
 	return shifted
 }
 
-func (b *Box) Draw(w *impress.Window, offset image.Point, drawLines bool) {
-	rect := b.rect()
-	if b.isActive {
-		b.textOption.Background = b.pal.Color(palette.ActiveBoxBackground)
-		b.textOption.Border = b.pal.Color(palette.ActiveEdge)
-		b.cursorOption.Enable = true
-	} else {
-		b.textOption.Background = b.pal.Color(palette.DefaultBackground)
-		b.textOption.Border = b.pal.Color(palette.DefaultEdge)
-		b.cursorOption.Enable = false
-	}
-	b.textOption.Size = rect.Size()
-	b.textBox.Move(rect.Min.Add(offset))
+func (b *Box) Draw(offset image.Point) {
+	b.textBox.Move(b.point.Add(offset))
 	b.textBox.Show()
-	if drawLines {
-		b.drawLine(w, offset, b.pal.Color(palette.DefaultLine))
-	}
 	for _, child := range b.childs {
-		child.Draw(w, offset, drawLines)
+		child.Draw(offset)
+	}
+}
+
+func (b *Box) DrawGrid(w *impress.Window, offset image.Point, other *Box) {
+	if b == other {
+		return
+	}
+	b.drawLine(w, offset, b.pal.Color(palette.DefaultLine))
+	for _, child := range b.childs {
+		child.DrawGrid(w, offset, other)
 	}
 }
 
 func (b *Box) drawLine(w *impress.Window, offset image.Point, color color.Color) {
-	if b.level <= 1 {
+	level := b.level()
+	if level <= 1 {
 		return
 	}
-	if b.level == 2 || b.level == 3 {
+	if level == 2 || level == 3 {
 		drawutil.DrawLine3Elem(w, offset, b.parent.lineFrom(b.IsRight()), b.lineTo(b.IsRight()), color)
 		return
 	}
@@ -72,7 +73,8 @@ func (b *Box) drawLine(w *impress.Window, offset image.Point, color color.Color)
 
 func (b *Box) lineFrom(toRight bool) image.Point {
 	rect := b.rect()
-	if b.level == 1 || b.level == 2 {
+	level := b.level()
+	if level == 1 || level == 2 {
 		if toRight {
 			return image.Pt(rect.Max.X, rect.Min.Y+b.pal.VerticalTextAlign())
 		}
@@ -86,7 +88,8 @@ func (b *Box) lineFrom(toRight bool) image.Point {
 
 func (b *Box) lineTo(toRight bool) image.Point {
 	rect := b.rect()
-	if b.level == 2 || b.level == 3 {
+	level := b.level()
+	if level == 2 || level == 3 {
 		if toRight {
 			return image.Pt(rect.Min.X, rect.Min.Y+b.pal.VerticalTextAlign())
 		}
@@ -97,4 +100,18 @@ func (b *Box) lineTo(toRight bool) image.Point {
 		return image.Pt(rect.Min.X, rect.Min.Y+b.pal.VerticalTextAlign())
 	}
 	return image.Pt(rect.Max.X, rect.Min.Y+b.pal.VerticalTextAlign())
+}
+
+func (b *Box) Raise() {
+	b.textBox.Raise()
+	for _, child := range b.childs {
+		child.Raise()
+	}
+}
+
+func (b *Box) Drag(plus image.Point) {
+	b.textBox.Move(b.point.Add(plus))
+	for _, child := range b.childs {
+		child.Drag(plus)
+	}
 }

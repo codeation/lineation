@@ -1,4 +1,4 @@
-package draw
+package box
 
 func maxInt(a, b int) int {
 	if a > b {

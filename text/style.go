@@ -10,6 +10,7 @@ import (
 type TextOption struct {
 	Font       *impress.Font
 	LineHeight int
+	Edge       int
 	Margin     image.Point
 	Size       image.Point
 	Foreground color.Color
@@ -42,6 +43,7 @@ func (o *simpleTextOption) Size() image.Point       { return o.values.Size }
 func (o *simpleTextOption) Foreground() color.Color { return o.values.Foreground }
 func (o *simpleTextOption) Background() color.Color { return o.values.Background }
 func (o *simpleTextOption) Border() color.Color     { return o.values.Border }
+func (o *simpleTextOption) Edge() int               { return o.values.Edge }
 
 func NewSimpleCursorOption(values *CursorOption) *simpleCursorOption {
 	return &simpleCursorOption{values: values}

@@ -5,6 +5,8 @@ import (
 
 	"github.com/codeation/lineation/control"
 	"github.com/codeation/lineation/draw"
+	"github.com/codeation/lineation/draw/box"
+	"github.com/codeation/lineation/draw/modifiedstatus"
 	"github.com/codeation/lineation/mindmap"
 	"github.com/codeation/lineation/palette"
 )
@@ -20,9 +22,9 @@ func NewApplication(mm *mindmap.MindMap) *Application {
 	guiApp := impress.NewApplication(pal.DefaultAppRect(), "lineation "+mm.Filename())
 	w := guiApp.NewWindow(pal.DefaultAppRect(), pal.Color(palette.DefaultBackground))
 
-	root := draw.NewBox(mm.Root(), guiApp, pal)
-
-	v := draw.NewView(w, root)
+	root := box.NewBox(mm.Root(), guiApp, pal)
+	modifiedStatus := modifiedstatus.NewModifiedStatus(guiApp, pal)
+	v := draw.NewView(w, root, modifiedStatus)
 	c := control.NewControl(guiApp, v, mm)
 
 	return &Application{

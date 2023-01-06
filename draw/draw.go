@@ -5,27 +5,35 @@ import (
 	"time"
 
 	"github.com/codeation/impress"
+	"github.com/codeation/impress/event"
 
+	"github.com/codeation/lineation/draw/box"
+	"github.com/codeation/lineation/draw/modifiedstatus"
 	"github.com/codeation/lineation/mindmap"
-	"github.com/codeation/lineation/palette"
 )
 
-type View struct {
-	w          *impress.Window
-	windowSize image.Point
-	offset     image.Point
-	rootBox    *Box
-	activeBox  *Box
-	markRedraw bool
-	isModified bool
+type syncer interface {
+	Sync()
+	Chan() <-chan event.Eventer
 }
 
-func NewView(w *impress.Window, box *Box) *View {
+type View struct {
+	w              *impress.Window
+	windowSize     image.Point
+	offset         image.Point
+	rootBox        *box.Box
+	activeBox      *box.Box
+	modifiedStatus *modifiedstatus.ModifiedStatus
+	markRedraw     bool
+}
+
+func NewView(w *impress.Window, box *box.Box, modifiedStatus *modifiedstatus.ModifiedStatus) *View {
 	return &View{
-		w:          w,
-		windowSize: image.Pt(1, 1),
-		rootBox:    box,
-		activeBox:  box,
+		w:              w,
+		windowSize:     image.Pt(1, 1),
+		rootBox:        box,
+		activeBox:      box,
+		modifiedStatus: modifiedStatus,
 	}
 }
 
@@ -34,22 +42,23 @@ func (v *View) GetNodes() *mindmap.Node {
 }
 
 func (v *View) Modified(ok bool) {
-	if v.isModified != ok {
-		v.QueueDraw()
-	}
-	v.isModified = ok
+	v.modifiedStatus.Modified(ok)
 }
 
-func (v *View) animeOffset(nextOffset image.Point) {
+func (v *View) animeOffset(nextOffset image.Point, s syncer) {
 	const steps = 5
 	const animeDuration = 100 * time.Millisecond
 	for i := 1; i < steps; i++ {
 		tempOffset := image.Pt((nextOffset.X*i+v.offset.X*(steps-i))/steps,
 			(nextOffset.Y*i+v.offset.Y*(steps-i))/steps)
-		v.rootBox.Draw(v.w, tempOffset, true)
+		v.rootBox.Draw(tempOffset)
+		v.rootBox.DrawGrid(v.w, tempOffset, nil)
 		v.w.Show()
 		since := time.Now()
-		v.rootBox.canvas.Sync()
+		s.Sync()
+		if len(s.Chan()) > 0 {
+			break
+		}
 		remains := animeDuration/steps - time.Since(since)
 		if remains > 0 {
 			time.Sleep(remains)
@@ -62,28 +71,26 @@ func (v *View) QueueDraw() {
 	v.markRedraw = true
 }
 
-func (v *View) ReDraw() {
+func (v *View) ReDraw(s syncer) {
 	if !v.markRedraw {
 		return
 	}
 	v.markRedraw = false
 	shifted := v.rootBox.SplitLeftRight()
-	aligned := v.rootBox.Align(image.Pt(v.windowSize.X/2, v.rootBox.pal.VerticalBoxAlign()))
+	aligned := v.rootBox.Align(image.Pt(v.windowSize.X/2, 0))
 	nextOffset := v.activeBox.GetOffset(v.windowSize, v.offset)
 	nextOffset = v.rootBox.Fit(v.windowSize, nextOffset)
 	shifted = shifted || aligned || v.offset != nextOffset
 	if shifted {
 		v.w.Clear()
 		if nextOffset != v.offset {
-			v.animeOffset(nextOffset)
+			v.animeOffset(nextOffset, s)
 		}
 		v.offset = nextOffset
 	}
-	v.rootBox.Draw(v.w, v.offset, shifted)
+	v.rootBox.Draw(v.offset)
 	if shifted {
-		if v.isModified {
-			v.w.Fill(image.Rect(2, 2, 8, 8), v.rootBox.pal.Color(palette.ActiveEdge))
-		}
+		v.rootBox.DrawGrid(v.w, v.offset, nil)
 		v.w.Show()
 	}
 }
@@ -98,7 +105,7 @@ func (v *View) ConfigureSize(size image.Point) {
 }
 
 func (v *View) KeyDown() {
-	next := v.activeBox.down()
+	next := v.activeBox.Down()
 	if next == v.activeBox || next == nil {
 		return
 	}
@@ -109,7 +116,7 @@ func (v *View) KeyDown() {
 }
 
 func (v *View) KeyUp() {
-	next := v.activeBox.up()
+	next := v.activeBox.Up()
 	if next == v.activeBox || next == nil {
 		return
 	}
@@ -131,7 +138,7 @@ func (v *View) Click(point image.Point) {
 }
 
 func (v *View) KeyLeft() {
-	ok := v.activeBox.textBox.Left()
+	ok := v.activeBox.Left()
 	if !ok {
 		return
 	}
@@ -139,7 +146,7 @@ func (v *View) KeyLeft() {
 }
 
 func (v *View) KeyRight() {
-	ok := v.activeBox.textBox.Right()
+	ok := v.activeBox.Right()
 	if !ok {
 		return
 	}
@@ -147,7 +154,7 @@ func (v *View) KeyRight() {
 }
 
 func (v *View) RemoveLastChar() {
-	ok := v.activeBox.textBox.Backspace()
+	ok := v.activeBox.Backspace()
 	if !ok {
 		return
 	}
@@ -155,23 +162,23 @@ func (v *View) RemoveLastChar() {
 }
 
 func (v *View) InsertChar(alpha rune) {
-	v.activeBox.textBox.Insert(alpha)
+	v.activeBox.Insert(alpha)
 	v.QueueDraw()
 }
 
-func (v *View) AddChildNode() {
-	next := v.activeBox.AddChildNode()
+func (v *View) AddChildNode(app *impress.Application) {
+	next := v.activeBox.AddChildNode(app)
 	v.activeBox.SetActive(false)
 	v.activeBox = next
 	v.activeBox.SetActive(true)
 	v.QueueDraw()
 }
 
-func (v *View) AddNextNode() {
+func (v *View) AddNextNode(app *impress.Application) {
 	if v.activeBox == v.rootBox {
 		return
 	}
-	next := v.activeBox.AddNextNode()
+	next := v.activeBox.AddNextNode(app)
 	v.activeBox.SetActive(false)
 	v.activeBox = next
 	v.activeBox.SetActive(true)

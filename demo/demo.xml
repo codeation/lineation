@@ -1,0 +1,25 @@
+<map>
+    <node text="Mind Map Editor">
+        <node text="Main features">
+            <node text="Native application performance"></node>
+            <node text="Auto alignment of Mind Map nodes"></node>
+            <node text="Keyboard is the primary input device"></node>
+        </node>
+        <node text="Technical notes">
+            <node text="Cross-platform Go GUI application"></node>
+            <node text="Alpha version"></node>
+        </node>
+        <node text="Keyboard control">
+            <node text="Use Tab to add the first child node"></node>
+            <node text="Enter text or delete a last symbol with Backspace"></node>
+            <node text="Navigating with the cursor keys"></node>
+            <node text="Use Enter to add the next child node"></node>
+            <node text="Use Delete to remove a node"></node>
+            <node text="Use Ctrl-S (or Cmd-S) to save Mind Map changes"></node>
+        </node>
+        <node text="Mouse control">
+            <node text="Select a node with a mouse click"></node>
+            <node text="Drag and Drop element to other parent node"></node>
+        </node>
+    </node>
+</map>

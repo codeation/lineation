@@ -29,13 +29,14 @@ func (c *Control) do(action event.Eventer) {
 		buttonEvent := action.(event.Button)
 		if buttonEvent.Action == event.ButtonActionPress && buttonEvent.Button == event.ButtonLeft {
 			c.view.Click(buttonEvent.Point)
+			c.dragDrop(buttonEvent)
 		}
 
 	case action == event.KeyTab:
-		c.view.AddChildNode()
+		c.view.AddChildNode(c.app)
 		c.view.Modified(true)
 	case action == event.KeyEnter:
-		c.view.AddNextNode()
+		c.view.AddNextNode(c.app)
 		c.view.Modified(true)
 	case action == event.KeyDelete:
 		c.view.DeleteNode()
@@ -54,11 +55,9 @@ func (c *Control) do(action event.Eventer) {
 			c.view.InsertChar(keyboardEvent.Rune)
 			c.view.Modified(true)
 		}
-
-	case action.Type() == event.MotionType:
 	}
 }
 
 func (c *Control) background() {
-	c.view.ReDraw()
+	c.view.ReDraw(c.app)
 }
