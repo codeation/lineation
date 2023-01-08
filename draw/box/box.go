@@ -133,7 +133,7 @@ func (b *Box) Backspace() bool {
 	return b.textBox.Backspace()
 }
 
-func (b *Box) Adopt(child *Box) {
+func (b *Box) Adopt(child *Box, beforeBox *Box) {
 	if child.parent != nil {
 		childs := make([]*Box, 0, len(child.parent.childs)-1)
 		for _, node := range child.parent.childs {
@@ -147,6 +147,19 @@ func (b *Box) Adopt(child *Box) {
 	b.childs = append(b.childs, child)
 	child.parent = b
 	child.point = image.Point{}
+	if beforeBox != nil {
+		childs := make([]*Box, 0, len(b.childs))
+		for _, node := range b.childs {
+			if node == child {
+				continue
+			}
+			if node == beforeBox {
+				childs = append(childs, child)
+			}
+			childs = append(childs, node)
+		}
+		b.childs = childs
+	}
 }
 
 func (b *Box) Emphasize() {

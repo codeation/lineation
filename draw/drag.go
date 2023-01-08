@@ -9,6 +9,7 @@ import (
 type dragState struct {
 	catchPoint           image.Point
 	oldParent, newParent *box.Box
+	beforeBox            *box.Box
 	IsGridCleared        bool
 }
 
@@ -32,7 +33,8 @@ func (v *View) Catch(eventPoint image.Point) (*dragState, bool) {
 
 func (v *View) Drag(state *dragState, eventPoint image.Point) {
 	plus := eventPoint.Sub(state.catchPoint.Sub(v.offset))
-	state.newParent = v.rootBox.FindOther(image.Pt(eventPoint.X, v.activeBox.Point().Y+plus.Y).Sub(v.offset), v.activeBox)
+	state.newParent, state.beforeBox = v.rootBox.FindOther(
+		image.Pt(eventPoint.X, v.activeBox.Point().Y+plus.Y).Sub(v.offset), v.activeBox)
 	v.activeBox.Drag(plus)
 }
 
@@ -67,6 +69,6 @@ func (v *View) DrawRemain(state *dragState) {
 
 func (v *View) Drop(state *dragState, eventPoint image.Point) {
 	state.newParent.DeEmphasize()
-	state.newParent.Adopt(v.activeBox)
+	state.newParent.Adopt(v.activeBox, state.beforeBox)
 	v.QueueDraw()
 }

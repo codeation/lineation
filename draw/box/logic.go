@@ -66,26 +66,33 @@ func (b *Box) In(point image.Point) bool {
 	return point.In(b.rect())
 }
 
-func (b *Box) find(point image.Point, ignoredBox *Box) *Box {
+func (b *Box) find(point image.Point, ignoredBox *Box) (*Box, *Box) {
 	if b == ignoredBox {
-		return nil
+		return nil, nil
 	}
-	if point.In(b.rect()) {
-		return b
+	rect := b.rect()
+	if point.In(rect) {
+		return b, nil
 	}
-	for _, child := range b.childs {
-		if next := child.find(point, ignoredBox); next != nil {
-			return next
+	if point.In(image.Rect(rect.Min.X, rect.Min.Y-b.pal.VerticalBoxOffset(), rect.Max.X, rect.Max.Y-1)) {
+		if b.parent != nil {
+			return b.parent, b
 		}
 	}
-	return nil
+	for _, child := range b.childs {
+		if next, beforeBox := child.find(point, ignoredBox); next != nil || beforeBox != nil {
+			return next, beforeBox
+		}
+	}
+	return nil, nil
 }
 
 func (b *Box) Find(point image.Point) *Box {
-	return b.find(point, nil)
+	box, _ := b.find(point, nil)
+	return box
 }
 
-func (b *Box) FindOther(point image.Point, other *Box) *Box {
+func (b *Box) FindOther(point image.Point, other *Box) (*Box, *Box) {
 	return b.find(point, other)
 }
 
