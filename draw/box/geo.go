@@ -21,10 +21,11 @@ func (b *Box) rect() image.Rectangle {
 }
 
 func (b *Box) heightWithChilds() int {
-	switch b.level() {
-	case 1:
+	level := b.level()
+	switch {
+	case level == 1:
 		return b.height()
-	case 2:
+	case level < b.pal.Columns():
 		return maxInt(b.height(), b.heightOfChilds())
 	default:
 		heightOfChilds := b.heightOfChilds()

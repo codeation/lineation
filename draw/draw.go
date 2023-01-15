@@ -2,7 +2,6 @@ package draw
 
 import (
 	"image"
-	"time"
 
 	"github.com/codeation/impress"
 	"github.com/codeation/impress/event"
@@ -45,6 +44,7 @@ func (v *View) Modified(ok bool) {
 	v.modifiedStatus.Modified(ok)
 }
 
+/*
 func (v *View) animeOffset(nextOffset image.Point, s syncer) {
 	const steps = 5
 	const animeDuration = 100 * time.Millisecond
@@ -66,6 +66,7 @@ func (v *View) animeOffset(nextOffset image.Point, s syncer) {
 		v.w.Clear()
 	}
 }
+*/
 
 func (v *View) QueueDraw() {
 	v.markRedraw = true
@@ -83,9 +84,11 @@ func (v *View) ReDraw(s syncer) {
 	shifted = shifted || aligned || v.offset != nextOffset
 	if shifted {
 		v.w.Clear()
-		if nextOffset != v.offset {
-			v.animeOffset(nextOffset, s)
-		}
+		/*
+			if nextOffset != v.offset {
+				v.animeOffset(nextOffset, s)
+			}
+		*/
 		v.offset = nextOffset
 	}
 	v.rootBox.Draw(v.offset)

@@ -113,13 +113,15 @@ func (p *Palette) VerticalBoxOffset() int {
 	return p.config.Boxes.Offset.Height
 }
 
+func (p *Palette) Columns() int {
+	return len(p.config.Boxes.Widths)
+}
+
 func (p *Palette) HorizontalBoxOffset(level int) int {
-	switch level {
-	case 1:
+	switch {
+	case level == 1:
 		return 0
-	case 2:
-		return p.config.Boxes.Align.Width + (p.BoxWidth(level)+p.BoxWidth(level-1))/2
-	case 3:
+	case level <= len(p.config.Boxes.Widths):
 		return p.config.Boxes.Align.Width + (p.BoxWidth(level)+p.BoxWidth(level-1))/2
 	default:
 		return p.config.Boxes.Align.Width
@@ -127,14 +129,10 @@ func (p *Palette) HorizontalBoxOffset(level int) int {
 }
 
 func (p *Palette) BoxWidth(level int) int {
-	switch level {
-	case 1:
-		return p.config.Boxes.Widths[0]
-	case 2:
-		return p.config.Boxes.Widths[1]
-	default:
-		return p.config.Boxes.Widths[2]
+	if level <= len(p.config.Boxes.Widths) {
+		return p.config.Boxes.Widths[level-1]
 	}
+	return p.config.Boxes.Widths[len(p.config.Boxes.Widths)-1]
 }
 
 func (p *Palette) BoxHeight(level int, linecount int) int {

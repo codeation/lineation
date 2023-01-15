@@ -18,7 +18,7 @@ type configSize struct {
 type configBoxes struct {
 	Align  configSize `json:"align"`
 	Offset configSize `json:"offset"`
-	Widths [3]int     `json:"widths"`
+	Widths []int      `json:"widths"`
 }
 
 type configFonts struct {
@@ -45,7 +45,7 @@ func defaultConfig() *Config {
 		Boxes: configBoxes{
 			Align:  configSize{Width: 20, Height: 16},
 			Offset: configSize{Width: 50, Height: 16},
-			Widths: [3]int{100, 140, 300},
+			Widths: []int{100, 140, 300},
 		},
 		Fonts: configFonts{
 			Default: configFont{

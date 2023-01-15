@@ -23,7 +23,7 @@ func (b *Box) Align(since image.Point) bool {
 	}
 	left := since.Add(image.Pt(-b.pal.HorizontalBoxOffset(level+1), 0))
 	right := since.Add(image.Pt(b.pal.HorizontalBoxOffset(level+1), 0))
-	if level > 2 {
+	if level >= b.pal.Columns() {
 		left = left.Add(image.Pt(0, b.height()+b.pal.VerticalBoxOffset()))
 		right = right.Add(image.Pt(0, b.height()+b.pal.VerticalBoxOffset()))
 	}
@@ -64,7 +64,7 @@ func (b *Box) drawLine(w *impress.Window, offset image.Point, color color.Color)
 	if level <= 1 {
 		return
 	}
-	if level == 2 || level == 3 {
+	if level <= b.pal.Columns() {
 		drawutil.DrawLine3Elem(w, offset, b.parent.lineFrom(b.IsRight()), b.lineTo(b.IsRight()), color)
 		return
 	}
@@ -74,7 +74,7 @@ func (b *Box) drawLine(w *impress.Window, offset image.Point, color color.Color)
 func (b *Box) lineFrom(toRight bool) image.Point {
 	rect := b.rect()
 	level := b.level()
-	if level == 1 || level == 2 {
+	if level < b.pal.Columns() {
 		if toRight {
 			return image.Pt(rect.Max.X, rect.Min.Y+b.pal.VerticalTextAlign())
 		}
@@ -89,7 +89,7 @@ func (b *Box) lineFrom(toRight bool) image.Point {
 func (b *Box) lineTo(toRight bool) image.Point {
 	rect := b.rect()
 	level := b.level()
-	if level == 2 || level == 3 {
+	if level <= b.pal.Columns() {
 		if toRight {
 			return image.Pt(rect.Min.X, rect.Min.Y+b.pal.VerticalTextAlign())
 		}
