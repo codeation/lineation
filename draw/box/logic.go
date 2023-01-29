@@ -75,7 +75,7 @@ func (b *Box) find(point image.Point, ignoredBox *Box) (*Box, *Box) {
 		return b, nil
 	}
 	if point.In(image.Rect(rect.Min.X, rect.Min.Y-b.pal.VerticalBoxOffset(), rect.Max.X, rect.Max.Y-1)) {
-		if b.parent != nil {
+		if ignoredBox != nil && b.parent != nil {
 			return b.parent, b
 		}
 	}
