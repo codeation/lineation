@@ -1,7 +1,7 @@
 package wrap
 
 type splitter interface {
-	Split(text string, edge int) []string
+	Split(text string, edge int, indent int) []string
 }
 
 type edger interface {
@@ -35,7 +35,7 @@ func (w *Wrap) ensureSplit() {
 		return
 	}
 	w.lastEdge = w.edger.Edge()
-	w.texts = w.splitter.Split(w.Runes.String(), w.lastEdge)
+	w.texts = w.splitter.Split(w.Runes.String(), w.lastEdge, 0)
 	w.needSplit = false
 }
 
