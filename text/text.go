@@ -40,6 +40,7 @@ type textState struct {
 	row, col       int
 	enable         bool
 	lastBackground color.Color
+	width          int
 }
 
 type Text struct {
@@ -80,7 +81,8 @@ func (t *Text) stateOk() bool {
 	row, col := t.content.Cursor()
 	return row == t.state.row && col == t.state.col &&
 		t.option.Cursor.Enable() == t.state.enable &&
-		t.option.Text.Background() == t.state.lastBackground
+		t.option.Text.Background() == t.state.lastBackground &&
+		t.option.Text.Size().X == t.state.width
 }
 
 func (t *Text) keepState() {
@@ -89,6 +91,7 @@ func (t *Text) keepState() {
 	t.state.col = col
 	t.state.enable = t.option.Cursor.Enable()
 	t.state.lastBackground = t.option.Text.Background()
+	t.state.width = t.option.Text.Size().X
 }
 
 func (t *Text) Show() {
