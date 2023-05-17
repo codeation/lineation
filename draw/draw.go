@@ -23,7 +23,7 @@ type View struct {
 	rootBox        *box.Box
 	activeBox      *box.Box
 	modifiedStatus *modifiedstatus.ModifiedStatus
-	markRedraw     bool
+	needRedraw     bool
 }
 
 func NewView(w *impress.Window, box *box.Box, modifiedStatus *modifiedstatus.ModifiedStatus) *View {
@@ -69,14 +69,14 @@ func (v *View) animeOffset(nextOffset image.Point, s syncer) {
 */
 
 func (v *View) QueueDraw() {
-	v.markRedraw = true
+	v.needRedraw = true
 }
 
 func (v *View) ReDraw(s syncer) {
-	if !v.markRedraw {
+	if !v.needRedraw {
 		return
 	}
-	v.markRedraw = false
+	v.needRedraw = false
 	shifted := v.rootBox.SplitLeftRight()
 	aligned := v.rootBox.Align(image.Pt(v.windowSize.X/2, 0))
 	nextOffset := v.activeBox.GetOffset(v.windowSize, v.offset)

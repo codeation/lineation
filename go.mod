@@ -1,5 +1,5 @@
 module github.com/codeation/lineation
 
-go 1.19
+go 1.20
 
-require github.com/codeation/impress v0.2.6
+require github.com/codeation/impress v0.3.1

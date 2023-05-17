@@ -1,6 +1,8 @@
 package control
 
-import "github.com/codeation/impress/event"
+import (
+	"github.com/codeation/impress/event"
+)
 
 func (c *Control) dragDrop(initAction event.Button) {
 	state, ok := c.view.Catch(initAction.Point)

@@ -11,6 +11,7 @@ type dragState struct {
 	oldParent, newParent *box.Box
 	beforeBox            *box.Box
 	IsGridCleared        bool
+	NeedRedraw           bool
 }
 
 func (state *dragState) IsDroppable() bool {
@@ -40,6 +41,7 @@ func (v *View) Drag(state *dragState, eventPoint image.Point) {
 
 func (v *View) DrawDrag(state *dragState) {
 	if !state.IsGridCleared {
+		state.NeedRedraw = true
 		v.activeBox.Raise()
 		v.w.Clear()
 		v.rootBox.DrawGrid(v.w, v.offset, v.activeBox)
@@ -47,6 +49,7 @@ func (v *View) DrawDrag(state *dragState) {
 		state.IsGridCleared = true
 	}
 	if state.newParent != state.oldParent {
+		state.NeedRedraw = true
 		if state.oldParent != nil {
 			state.oldParent.DeEmphasize()
 		}
@@ -58,6 +61,9 @@ func (v *View) DrawDrag(state *dragState) {
 }
 
 func (v *View) DrawRemain(state *dragState) {
+	if !state.NeedRedraw {
+		return
+	}
 	v.w.Clear()
 	v.rootBox.DrawGrid(v.w, v.offset, nil)
 	v.w.Show()
