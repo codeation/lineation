@@ -2,7 +2,7 @@
 
 Mind Map Editor. Ready to catch your thoughts.
 
-<img src="https://codeation.github.io/images/lineation_demo.png" width="1007" height="583" />
+<img src="https://codeation.github.io/images/lineation_demo.png" width="830" height="480" />
 
 ## Alpha Version
 
