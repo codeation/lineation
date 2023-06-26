@@ -20,12 +20,12 @@ type Palette struct {
 type ColorType color.Color
 
 var (
-	black  = color.RGBA{0, 0, 0, 0}
-	white  = color.RGBA{255, 255, 255, 0}
-	gray   = color.RGBA{192, 192, 192, 0}
-	silver = color.RGBA{239, 239, 239, 0}
-	lite   = color.RGBA{224, 224, 224, 0}
-	red    = color.RGBA{255, 0, 0, 0}
+	black  = color.RGBA{0, 0, 0, 255}
+	white  = color.RGBA{255, 255, 255, 255}
+	gray   = color.RGBA{192, 192, 192, 255}
+	silver = color.RGBA{239, 239, 239, 255}
+	lite   = color.RGBA{224, 224, 224, 255}
+	red    = color.RGBA{255, 0, 0, 255}
 )
 
 var (
