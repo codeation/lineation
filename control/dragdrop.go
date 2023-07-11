@@ -10,7 +10,7 @@ func (c *Control) dragDrop(initAction event.Button) {
 		return
 	}
 
-	c.background()
+	c.reDraw()
 	c.app.Sync()
 
 	for {
@@ -30,7 +30,6 @@ func (c *Control) dragDrop(initAction event.Button) {
 		}
 
 		if len(c.app.Chan()) == 0 {
-			c.background()
 			c.view.DrawDrag(state)
 			c.app.Sync()
 		}

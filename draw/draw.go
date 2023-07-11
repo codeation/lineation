@@ -23,7 +23,6 @@ type View struct {
 	rootBox        *box.Box
 	activeBox      *box.Box
 	modifiedStatus *modifiedstatus.ModifiedStatus
-	needRedraw     bool
 }
 
 func NewView(w *impress.Window, box *box.Box, modifiedStatus *modifiedstatus.ModifiedStatus) *View {
@@ -68,43 +67,21 @@ func (v *View) animeOffset(nextOffset image.Point, s syncer) {
 }
 */
 
-func (v *View) QueueDraw() {
-	v.needRedraw = true
-}
-
 func (v *View) ReDraw(s syncer) {
-	if !v.needRedraw {
-		return
-	}
-	v.needRedraw = false
-	shifted := v.rootBox.SplitLeftRight()
-	aligned := v.rootBox.Align(image.Pt(v.windowSize.X/2, 0))
+	v.rootBox.SplitLeftRight()
+	v.rootBox.Align(image.Pt(v.windowSize.X/2, 0))
 	nextOffset := v.activeBox.GetOffset(v.windowSize, v.offset)
 	nextOffset = v.rootBox.Fit(v.windowSize, nextOffset)
-	shifted = shifted || aligned || v.offset != nextOffset
-	if shifted {
-		v.w.Clear()
-		/*
-			if nextOffset != v.offset {
-				v.animeOffset(nextOffset, s)
-			}
-		*/
-		v.offset = nextOffset
-	}
+	v.w.Clear()
+	v.offset = nextOffset
 	v.rootBox.Draw(v.offset)
-	if shifted {
-		v.rootBox.DrawGrid(v.w, v.offset, nil)
-		v.w.Show()
-	}
+	v.rootBox.DrawGrid(v.w, v.offset, nil)
+	v.w.Show()
 }
 
 func (v *View) ConfigureSize(size image.Point) {
-	if v.windowSize == size {
-		return
-	}
 	v.windowSize = size
 	v.w.Size(image.Rect(0, 0, size.X, size.Y))
-	v.QueueDraw()
 }
 
 func (v *View) KeyDown() {
@@ -115,7 +92,6 @@ func (v *View) KeyDown() {
 	v.activeBox.SetActive(false)
 	v.activeBox = next
 	v.activeBox.SetActive(true)
-	v.QueueDraw()
 }
 
 func (v *View) KeyUp() {
@@ -126,7 +102,6 @@ func (v *View) KeyUp() {
 	v.activeBox.SetActive(false)
 	v.activeBox = next
 	v.activeBox.SetActive(true)
-	v.QueueDraw()
 }
 
 func (v *View) Click(point image.Point) {
@@ -137,36 +112,22 @@ func (v *View) Click(point image.Point) {
 	v.activeBox.SetActive(false)
 	v.activeBox = next
 	v.activeBox.SetActive(true)
-	v.QueueDraw()
 }
 
 func (v *View) KeyLeft() {
-	ok := v.activeBox.Left()
-	if !ok {
-		return
-	}
-	v.QueueDraw()
+	v.activeBox.Left()
 }
 
 func (v *View) KeyRight() {
-	ok := v.activeBox.Right()
-	if !ok {
-		return
-	}
-	v.QueueDraw()
+	v.activeBox.Right()
 }
 
 func (v *View) RemoveLastChar() {
-	ok := v.activeBox.Backspace()
-	if !ok {
-		return
-	}
-	v.QueueDraw()
+	v.activeBox.Backspace()
 }
 
 func (v *View) InsertChar(alpha rune) {
 	v.activeBox.Insert(alpha)
-	v.QueueDraw()
 }
 
 func (v *View) AddChildNode(app *impress.Application) {
@@ -174,7 +135,6 @@ func (v *View) AddChildNode(app *impress.Application) {
 	v.activeBox.SetActive(false)
 	v.activeBox = next
 	v.activeBox.SetActive(true)
-	v.QueueDraw()
 }
 
 func (v *View) AddNextNode(app *impress.Application) {
@@ -185,7 +145,6 @@ func (v *View) AddNextNode(app *impress.Application) {
 	v.activeBox.SetActive(false)
 	v.activeBox = next
 	v.activeBox.SetActive(true)
-	v.QueueDraw()
 }
 
 func (v *View) DeleteNode() {
@@ -195,5 +154,4 @@ func (v *View) DeleteNode() {
 	next := v.activeBox.DeleteNode()
 	v.activeBox = next
 	v.activeBox.SetActive(true)
-	v.QueueDraw()
 }

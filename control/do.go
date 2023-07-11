@@ -59,6 +59,6 @@ func (c *Control) do(action event.Eventer) {
 	}
 }
 
-func (c *Control) background() {
+func (c *Control) reDraw() {
 	c.view.ReDraw(c.app)
 }

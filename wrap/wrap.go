@@ -10,33 +10,23 @@ type edger interface {
 
 type Wrap struct {
 	*Runes
-	splitter  splitter
-	edger     edger
-	texts     []string
-	needSplit bool
-	lastEdge  int
+	splitter splitter
+	edger    edger
+	texts    []string
+	lastEdge int
 }
 
 func NewWrap(text string, splitter splitter, edger edger) *Wrap {
 	return &Wrap{
-		Runes:     NewRunes(text),
-		splitter:  splitter,
-		edger:     edger,
-		needSplit: true,
+		Runes:    NewRunes(text),
+		splitter: splitter,
+		edger:    edger,
 	}
-}
-
-func (w *Wrap) enqueueSplit() {
-	w.needSplit = true
 }
 
 func (w *Wrap) ensureSplit() {
-	if !w.needSplit && w.lastEdge == w.edger.Edge() {
-		return
-	}
 	w.lastEdge = w.edger.Edge()
 	w.texts = w.splitter.Split(w.Runes.String(), w.lastEdge, 0)
-	w.needSplit = false
 }
 
 func (w *Wrap) Lines() int {
@@ -72,13 +62,8 @@ func (w *Wrap) Cursor() (int, int) {
 
 func (w *Wrap) Insert(alpha rune) {
 	w.Runes.Insert(alpha)
-	w.enqueueSplit()
 }
 
 func (w *Wrap) Backspace() bool {
-	if !w.Runes.Backspace() {
-		return false
-	}
-	w.enqueueSplit()
-	return true
+	return w.Runes.Backspace()
 }

@@ -26,6 +26,7 @@ var (
 	silver = color.RGBA{239, 239, 239, 255}
 	lite   = color.RGBA{224, 224, 224, 255}
 	red    = color.RGBA{255, 0, 0, 255}
+	cursor = color.RGBA{255, 0, 0, 127}
 )
 
 var (
@@ -35,7 +36,7 @@ var (
 	ActiveBoxBackground  = ColorType(silver)
 	ActiveEdge           = ColorType(red)
 	DefaultText          = ColorType(black)
-	CursorBlock          = ColorType(red)
+	CursorBlock          = ColorType(cursor)
 	DefaultLine          = ColorType(lite)
 )
 
@@ -174,7 +175,7 @@ func (p *Palette) CursorPoint() image.Point {
 }
 
 func (p *Palette) CursorSize() image.Point {
-	return image.Pt(p.config.Fonts.Cursor.Width, p.DefaultFont().Height)
+	return image.Pt(p.config.Fonts.Cursor.Width, p.DefaultFont().LineHeight)
 }
 
 var once sync.Once

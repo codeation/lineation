@@ -41,7 +41,7 @@ func (c *Control) Loop() {
 		c.do(action)
 
 		if len(c.app.Chan()) == 0 {
-			c.background()
+			c.reDraw()
 		}
 	}
 }
