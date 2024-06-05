@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"image"
-	"image/color"
 	"os"
 	"path"
 	"sync"
@@ -16,29 +15,6 @@ import (
 type Palette struct {
 	config *Config
 }
-
-type ColorType color.Color
-
-var (
-	black  = color.RGBA{0, 0, 0, 255}
-	white  = color.RGBA{255, 255, 255, 255}
-	gray   = color.RGBA{192, 192, 192, 255}
-	silver = color.RGBA{239, 239, 239, 255}
-	lite   = color.RGBA{224, 224, 224, 255}
-	red    = color.RGBA{255, 0, 0, 255}
-	cursor = color.RGBA{255, 0, 0, 127}
-)
-
-var (
-	DefaultBackground    = ColorType(white)
-	DefaultBoxBackground = ColorType(white)
-	DefaultEdge          = ColorType(gray)
-	ActiveBoxBackground  = ColorType(silver)
-	ActiveEdge           = ColorType(red)
-	DefaultText          = ColorType(black)
-	CursorBlock          = ColorType(cursor)
-	DefaultLine          = ColorType(lite)
-)
 
 func NewPalette() *Palette {
 	isCreate := false
@@ -57,15 +33,15 @@ func NewPalette() *Palette {
 func newPalette() (*Palette, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return nil, fmt.Errorf("UserHomeDir: %w", err)
+		return nil, fmt.Errorf("os.UserHomeDir: %w", err)
 	}
 	data, err := os.ReadFile(path.Join(home, ".lineation", "config.json"))
 	if err != nil {
-		return nil, fmt.Errorf("ReadFile: %w", err)
+		return nil, fmt.Errorf("os.ReadFile: %w", err)
 	}
 	var config Config
 	if err := json.Unmarshal(data, &config); err != nil {
-		return nil, fmt.Errorf("unmarshal: %w", err)
+		return nil, fmt.Errorf("json.Unmarshal: %w", err)
 	}
 	return &Palette{config: &config}, nil
 }
@@ -73,60 +49,43 @@ func newPalette() (*Palette, error) {
 func (p *Palette) save() error {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return fmt.Errorf("UserHomeDir: %w", err)
+		return fmt.Errorf("os.UserHomeDir: %w", err)
 	}
 	filename := path.Join(home, ".lineation", "config.json")
 	if _, err := os.Stat(path.Dir(filename)); err != nil && os.IsNotExist(err) {
 		if err := os.MkdirAll(path.Dir(filename), 0755); err != nil {
-			return fmt.Errorf("MadirAll: %w", err)
+			return fmt.Errorf("os.MkdirAll: %w", err)
 		}
 	}
 
 	data, err := json.MarshalIndent(p.config, "", "    ")
 	if err != nil {
-		return fmt.Errorf("marshal: %w", err)
+		return fmt.Errorf("json.MarshalIndent: %w", err)
 	}
 
 	if err := os.WriteFile(filename, data, 0644); err != nil {
-		return fmt.Errorf("WriteFile: %w", err)
+		return fmt.Errorf("os.WriteFile: %w", err)
 	}
 
 	return nil
 }
 
 func (p *Palette) DefaultAppRect() image.Rectangle {
-	return image.Rect(0, 0, p.config.Window.Size.Width, p.config.Window.Size.Height)
+	return image.Rectangle{Max: p.config.Window.Size.Point()}
 }
 
-func (p *Palette) Color(c ColorType) color.Color {
-	return color.Color(c)
+// BoxAlign returns space from application edge and any map node border
+func (p *Palette) BoxAlign() image.Point {
+	return p.config.Boxes.Align.Point()
 }
 
-func (p *Palette) HorizontalBoxAlign() int {
-	return p.config.Boxes.Align.Width
-}
-
-func (p *Palette) VerticalBoxAlign() int {
-	return p.config.Boxes.Align.Height
-}
-
-func (p *Palette) VerticalBoxOffset() int {
-	return p.config.Boxes.Offset.Height
+// BoxOffset return space between two map node
+func (p *Palette) BoxOffset() image.Point {
+	return p.config.Boxes.Offset.Point()
 }
 
 func (p *Palette) Columns() int {
 	return len(p.config.Boxes.Widths)
-}
-
-func (p *Palette) HorizontalBoxOffset(level int) int {
-	switch {
-	case level == 1:
-		return 0
-	case level <= len(p.config.Boxes.Widths):
-		return p.config.Boxes.Align.Width + (p.BoxWidth(level)+p.BoxWidth(level-1))/2
-	default:
-		return p.config.Boxes.Align.Width
-	}
 }
 
 func (p *Palette) BoxWidth(level int) int {
@@ -136,44 +95,17 @@ func (p *Palette) BoxWidth(level int) int {
 	return p.config.Boxes.Widths[len(p.config.Boxes.Widths)-1]
 }
 
-func (p *Palette) BoxHeight(level int, linecount int) int {
-	offset := 0
-	if linecount == 0 {
-		linecount = 1
-	}
-	if linecount > 1 {
-		offset = (linecount - 1) * p.TextLineOffset()
-	}
-	return p.VerticalTextAlign()*2 + p.DefaultFont().Height*linecount + offset + 2
+// TextAlign returns space from border to text for a map node
+func (p *Palette) TextAlign() image.Point {
+	return p.config.Fonts.Default.Align.Point()
 }
 
-func (p *Palette) VerticalTextAlign() int {
-	return p.config.Fonts.Default.Align.Height
-}
-
+// TextLineOffset returns extra space between two text line for a map node
 func (p *Palette) TextLineOffset() int {
 	return p.config.Fonts.Default.Offset
 }
 
-func (p *Palette) HorizontalTextAlign() int {
-	return p.config.Fonts.Default.Align.Width
-}
-
-func (p *Palette) TextLinePoint(level int, lineno int) image.Point {
-	offset := 0
-	if lineno < 0 {
-		lineno = 0
-	}
-	if lineno > 0 {
-		offset = (lineno) * p.TextLineOffset()
-	}
-	return image.Pt(p.HorizontalTextAlign(), p.VerticalTextAlign()+p.DefaultFont().Height*lineno+offset)
-}
-
-func (p *Palette) CursorPoint() image.Point {
-	return image.Pt(0, p.TextLineOffset())
-}
-
+// CursorSize returns cursor size
 func (p *Palette) CursorSize() image.Point {
 	return image.Pt(p.config.Fonts.Cursor.Width, p.DefaultFont().LineHeight)
 }

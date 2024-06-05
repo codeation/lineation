@@ -2,3 +2,5 @@ github.com/codeation/impress v0.4.5 h1:8NmcAJuCsVlxBfGt/5qWrQkEe7vj2EQ5qWBZ1ZuMh
 github.com/codeation/impress v0.4.5/go.mod h1:Yl97DwiQRRoV6aP62IlveGNwjp4276T+951KDPQDvTc=
 github.com/codeation/lru v1.2.2 h1:hWMs0CF/WzNexZ9VH+9GTogmjpW3FBJUF/LZcb9Payo=
 github.com/codeation/lru v1.2.2/go.mod h1:1C9+zUoRETpelIbMxh6wj9APf2VnKh0tk9aRsrOQUsk=
+github.com/codeation/tile v0.1.0 h1:zPN+JIf1Xd5yHNK/vHtEXXGgNq9ooAm4ySBmV/qVqVY=
+github.com/codeation/tile v0.1.0/go.mod h1:32RgTNNxuhVm17a1408/3gUG/ZHlUDSmqYWt96We4sc=

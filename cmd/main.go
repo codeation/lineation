@@ -1,34 +1,53 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
+	"path/filepath"
 
 	_ "github.com/codeation/impress/duo"
 
-	"github.com/codeation/lineation/application"
-	"github.com/codeation/lineation/mindmap"
+	"github.com/codeation/impress"
+	"github.com/codeation/tile/eventlink"
+
+	"github.com/codeation/lineation/mapcontrol"
+	"github.com/codeation/lineation/mapmodel"
+	"github.com/codeation/lineation/mapview"
+	"github.com/codeation/lineation/menuevent"
+	"github.com/codeation/lineation/palette"
+	"github.com/codeation/lineation/xmlfile"
 )
 
-func run() error {
+func run(ctx context.Context) error {
 	flag.Parse()
 	if len(flag.Args()) != 1 {
 		return fmt.Errorf("filename argument is missing")
 	}
+	filename := filepath.Clean(flag.Args()[0])
 
-	mm, err := mindmap.Open(flag.Args()[0])
-	if err != nil {
-		return fmt.Errorf("NewMindMap: %w", err)
-	}
-
-	app := application.NewApplication(mm)
+	pal := palette.NewPalette()
+	a := impress.NewApplication(pal.DefaultAppRect(), fmt.Sprintf("lineation %s", filename))
+	app := eventlink.MainApp(a)
 	defer app.Close()
-	app.Run()
+	menuevent.New(app.Application)
+
+	mapRoot, err := xmlfile.Open(filename)
+	if err != nil {
+		return fmt.Errorf("xmlfile.Open: %w", err)
+	}
+	mapModel := mapmodel.New(mapRoot, filename)
+	mapView := mapview.New(app, mapModel, pal)
+	defer mapView.Destroy()
+
+	mapControl := mapcontrol.New(app, mapModel, mapView)
+	app.Run(ctx, mapControl)
+
 	return nil
 }
 
 func main() {
-	if err := run(); err != nil {
+	if err := run(context.Background()); err != nil {
 		fmt.Println(err)
 	}
 }

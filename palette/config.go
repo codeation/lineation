@@ -1,24 +1,31 @@
 package palette
 
+import (
+	"image"
+)
+
 type Config struct {
-	Window configWindow `json:"window"`
-	Boxes  configBoxes  `json:"boxes"`
-	Fonts  configFonts  `json:"fonts"`
+	Window  configWindow  `json:"window"`
+	Boxes   configBoxes   `json:"boxes"`
+	Dialogs configDialogs `json:"dialogs"`
+	Fonts   configFonts   `json:"fonts"`
 }
 
 type configWindow struct {
 	Size configSize `json:"size"`
 }
 
-type configSize struct {
-	Width  int `json:"width"`
-	Height int `json:"height"`
-}
-
 type configBoxes struct {
 	Align  configSize `json:"align"`
 	Offset configSize `json:"offset"`
 	Widths []int      `json:"widths"`
+}
+
+type configDialogs struct {
+	Align  configSize `json:"align"`
+	Offset configSize `json:"offset"`
+	Button int        `json:"button"`
+	Width  int        `json:"width"`
 }
 
 type configFonts struct {
@@ -37,6 +44,13 @@ type configCursor struct {
 	Width int `json:"width"`
 }
 
+type configSize struct {
+	Width  int `json:"width"`
+	Height int `json:"height"`
+}
+
+func (s configSize) Point() image.Point { return image.Pt(s.Width, s.Height) }
+
 func defaultConfig() *Config {
 	return &Config{
 		Window: configWindow{
@@ -46,6 +60,12 @@ func defaultConfig() *Config {
 			Align:  configSize{Width: 20, Height: 16},
 			Offset: configSize{Width: 50, Height: 16},
 			Widths: []int{100, 140, 300},
+		},
+		Dialogs: configDialogs{
+			Align:  configSize{Width: 20, Height: 16},
+			Offset: configSize{Width: 32, Height: 32},
+			Button: 160,
+			Width:  600,
 		},
 		Fonts: configFonts{
 			Default: configFont{
