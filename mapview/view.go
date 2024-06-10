@@ -90,20 +90,21 @@ func (v *View) Draw(app eventlink.App) {
 		rect := v.nodeRect(v.draggingNode, lrIndex, lr)
 		rect = rect.Add(v.draggingOffset)
 		v.nodes[v.draggingNode].Draw(rect)
-		nodeBorder := image.Rectangle{Min: rect.Min, Max: rect.Min.Add(v.nodes[v.draggingNode].Size(image.Point{}))}
-		v.nodesDraw(v.draggingNode.Childs, v.childRect(v.draggingNode, rect, lr), lr, nodeBorder)
+		v.nodesDraw(v.draggingNode.Childs, v.childRect(v.draggingNode, rect, lr), lr, image.Rectangle{})
 	}
 
 	v.w.Show()
-	app.Sync()
 }
 
 func (v *View) nodesDraw(nodes []*mapmodel.Node, rect image.Rectangle, lr Direction, parentBorder image.Rectangle) {
 	for _, node := range nodes {
 		if node != v.draggingNode {
 			v.nodes[node].Draw(rect)
-			nodeBorder := image.Rectangle{Min: rect.Min, Max: rect.Min.Add(v.nodes[node].Size(image.Point{}))}
-			v.arrowDraw(parentBorder, nodeBorder)
+			nodeBorder := image.Rectangle{}
+			if !parentBorder.Eq(nodeBorder) { // parentBorder != nil
+				nodeBorder = image.Rectangle{Min: rect.Min, Max: rect.Min.Add(v.nodes[node].Size(image.Point{}))}
+				v.arrowDraw(parentBorder, nodeBorder)
+			}
 			v.nodesDraw(node.Childs, v.childRect(node, rect, lr), lr, nodeBorder)
 		}
 		childSize := v.sizeWithChilds(node)

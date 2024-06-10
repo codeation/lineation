@@ -4,26 +4,36 @@ import (
 	"context"
 	"fmt"
 	"image"
+	"unicode"
 
+	"github.com/codeation/impress/clipboard"
 	"github.com/codeation/impress/event"
 	"github.com/codeation/tile/eventlink"
 	"github.com/codeation/tile/eventlink/ctxchan"
 
+	"github.com/codeation/lineation/appclip"
 	"github.com/codeation/lineation/mapmodel"
 	"github.com/codeation/lineation/mapview"
 	"github.com/codeation/lineation/menuevent"
+	"github.com/codeation/lineation/modified"
 	"github.com/codeation/lineation/xmlfile"
 )
 
 type Control struct {
 	mapModel *mapmodel.MindMap
 	mapView  *mapview.View
+	modView  *modified.View
+	appClip  *appclip.Clipboard
 }
 
-func New(app eventlink.AppFramer, mapModel *mapmodel.MindMap, mapView *mapview.View) *Control {
+func New(app eventlink.AppFramer, mapModel *mapmodel.MindMap, mapView *mapview.View,
+	modView *modified.View, appClip *appclip.Clipboard,
+) *Control {
 	return &Control{
 		mapModel: mapModel,
 		mapView:  mapView,
+		modView:  modView,
+		appClip:  appClip,
 	}
 }
 
@@ -35,6 +45,7 @@ func (c *Control) Action(ctx context.Context, app eventlink.App) {
 	for {
 		if len(app.Chan()) == 0 && maybeChanged {
 			c.mapView.Draw(app)
+			c.modView.Draw()
 			app.Sync()
 			maybeChanged = false
 		}
@@ -54,6 +65,8 @@ func (c *Control) Action(ctx context.Context, app eventlink.App) {
 			data := c.mapModel.Export()
 			if err := xmlfile.Save(data, c.mapModel.Filename); err != nil {
 				fmt.Println(err)
+			} else {
+				c.modView.Set(false)
 			}
 
 		case event.KeyUp:
@@ -62,17 +75,33 @@ func (c *Control) Action(ctx context.Context, app eventlink.App) {
 			c.mapModel.Down()
 		case event.KeyTab, menuevent.NewChild:
 			c.mapModel.NewChildNode()
+			c.modView.Set(true)
 		case event.KeyEnter, menuevent.NewNext:
 			c.mapModel.NewNextNode()
-		case event.KeyDelete, menuevent.Delete:
+			c.modView.Set(true)
+		case menuevent.Delete:
 			c.mapModel.DeleteNode()
+			c.modView.Set(true)
+		case event.KeyDelete:
+			if len(c.mapModel.Selected.Value.String()) == c.mapModel.Selected.Value.Cursor() {
+				c.mapModel.DeleteNode()
+				c.modView.Set(true)
+			}
 
 		case event.KeyLeft:
 			c.mapModel.Left()
 		case event.KeyRight:
 			c.mapModel.Right()
 		case event.KeyBackSpace:
-			c.mapModel.Backspace()
+			if c.mapModel.Selected.Value.Cursor() > 0 {
+				c.mapModel.Backspace()
+				c.modView.Set(true)
+			}
+
+		case event.KeyCopy, menuevent.Copy:
+			c.appClip.Put(c.mapModel.Selected.Value.String())
+		case event.KeyPaste, menuevent.Paste:
+			c.appClip.Get()
 
 		default:
 			switch ev := e.(type) {
@@ -82,6 +111,7 @@ func (c *Control) Action(ctx context.Context, app eventlink.App) {
 			case event.Keyboard:
 				if ev.IsGraphic() {
 					c.mapModel.Insert(ev.Rune)
+					c.modView.Set(true)
 				}
 
 			case event.Button:
@@ -92,6 +122,17 @@ func (c *Control) Action(ctx context.Context, app eventlink.App) {
 							c.dragAndDrop(ctx, app, node, ev.Point)
 						}
 					}
+				}
+
+			case event.Clipboard:
+				if text, ok := ev.Data.(clipboard.Text); ok {
+					for _, r := range text {
+						if !unicode.IsGraphic(r) {
+							continue
+						}
+						c.mapModel.Insert(r)
+					}
+					c.modView.Set(true)
 				}
 
 			default:
@@ -124,6 +165,7 @@ func (c *Control) dragAndDrop(ctx context.Context, app eventlink.App, node *mapm
 		case event.Button:
 			if ev.Action == event.ButtonActionRelease && ev.Button == event.ButtonLeft {
 				c.mapView.Drop(from, ev.Point)
+				c.modView.Set(true)
 			}
 			return
 

@@ -11,10 +11,12 @@ import (
 	"github.com/codeation/impress"
 	"github.com/codeation/tile/eventlink"
 
+	"github.com/codeation/lineation/appclip"
 	"github.com/codeation/lineation/mapcontrol"
 	"github.com/codeation/lineation/mapmodel"
 	"github.com/codeation/lineation/mapview"
 	"github.com/codeation/lineation/menuevent"
+	"github.com/codeation/lineation/modified"
 	"github.com/codeation/lineation/palette"
 	"github.com/codeation/lineation/xmlfile"
 )
@@ -39,8 +41,11 @@ func run(ctx context.Context) error {
 	mapModel := mapmodel.New(mapRoot, filename)
 	mapView := mapview.New(app, mapModel, pal)
 	defer mapView.Destroy()
+	modView := modified.NewView(app, pal)
+	defer modView.Destroy()
+	appClip := appclip.New(a)
 
-	mapControl := mapcontrol.New(app, mapModel, mapView)
+	mapControl := mapcontrol.New(app, mapModel, mapView, modView, appClip)
 	app.Run(ctx, mapControl)
 
 	return nil
