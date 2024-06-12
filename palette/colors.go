@@ -9,9 +9,9 @@ type ColorType color.Color
 var (
 	black  = color.RGBA{0, 0, 0, 255}
 	white  = color.RGBA{255, 255, 255, 255}
-	gray   = color.RGBA{210, 210, 210, 255}
-	silver = color.RGBA{225, 225, 225, 255}
-	lite   = color.RGBA{225, 225, 225, 255}
+	gray   = color.RGBA{208, 208, 208, 255}
+	silver = color.RGBA{224, 224, 224, 255}
+	lite   = color.RGBA{232, 232, 232, 255}
 	red    = color.RGBA{255, 0, 0, 255}
 	cursor = color.RGBA{255, 0, 0, 127}
 )
