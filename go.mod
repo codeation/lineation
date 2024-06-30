@@ -4,7 +4,7 @@ go 1.22.4
 
 require (
 	github.com/codeation/impress v0.4.6
-	github.com/codeation/tile v0.1.1
+	github.com/codeation/tile v0.1.2
 )
 
 require github.com/codeation/lru v1.3.0 // indirect
