@@ -7,13 +7,13 @@ import (
 	"image"
 	"os"
 	"path"
-	"sync"
 
 	"github.com/codeation/impress"
 )
 
 type Palette struct {
-	config *Config
+	config      *Config
+	defaultFont *impress.Font
 }
 
 func NewPalette() *Palette {
@@ -107,15 +107,18 @@ func (p *Palette) TextLineOffset() int {
 
 // CursorSize returns cursor size
 func (p *Palette) CursorSize() image.Point {
-	return image.Pt(p.config.Fonts.Cursor.Width, p.DefaultFont().LineHeight)
+	return image.Pt(p.config.Fonts.Cursor.Width, p.defaultFont.LineHeight)
 }
 
-var once sync.Once
-var font *impress.Font
+func (p *Palette) FontLink(app *impress.Application) {
+	p.defaultFont = app.NewFont(p.config.Fonts.Default.Height, p.config.Fonts.Default.Attributes)
+}
 
+func (p *Palette) FontClose() {
+	p.defaultFont.Close()
+}
+
+// DefaultFont returns default font
 func (p *Palette) DefaultFont() *impress.Font {
-	once.Do(func() {
-		font = impress.NewFont(p.config.Fonts.Default.Height, p.config.Fonts.Default.Attributes)
-	})
-	return font
+	return p.defaultFont
 }

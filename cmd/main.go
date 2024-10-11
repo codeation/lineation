@@ -32,6 +32,8 @@ func run(ctx context.Context) error {
 	a := impress.NewApplication(pal.DefaultAppRect(), fmt.Sprintf("lineation %s", filename))
 	app := eventlink.MainApp(a)
 	defer app.Close()
+	pal.FontLink(app.Application)
+	defer pal.FontClose()
 	menuevent.New(app.Application)
 
 	mapRoot, err := xmlfile.Open(filename)
