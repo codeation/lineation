@@ -19,6 +19,10 @@ import (
 	"github.com/codeation/lineation/xmlfile"
 )
 
+var keypadEnter = event.Keyboard{
+	Name: "KP_Enter",
+}
+
 type Control struct {
 	mapModel *mapmodel.MindMap
 	mapView  *mapview.View
@@ -76,7 +80,7 @@ func (c *Control) Action(ctx context.Context, app eventlink.App) {
 		case event.KeyTab, menuevent.NewChild:
 			c.mapModel.NewChildNode()
 			c.modView.Set(true)
-		case event.KeyEnter, menuevent.NewNext:
+		case event.KeyEnter, keypadEnter, menuevent.NewNext:
 			c.mapModel.NewNextNode()
 			c.modView.Set(true)
 		case menuevent.Delete:
