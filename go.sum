@@ -1,6 +1,6 @@
-github.com/codeation/impress v0.5.0 h1:UC8JlgfIwxNwtcrsK0MOn4Cz4n1mP+hTKU8Z6dZ4YTY=
-github.com/codeation/impress v0.5.0/go.mod h1:CMDdouE+Y9Up/HycH8mgzVJqGiYgbSXQIdpI+msp6ww=
+github.com/codeation/impress v0.5.1 h1:gZ+lgfB0n184njpaBp7/w5rq7fEJKu5bKH8kmGFCwLI=
+github.com/codeation/impress v0.5.1/go.mod h1:N1e3oKqfkN4c2tfobkZTIpsklzdRby4OaJrOYQutKXc=
 github.com/codeation/lru v1.3.0 h1:BZlD5G4bt0bis9FHV5q3zyyDCAx21ue2CvvM1T8hQl4=
 github.com/codeation/lru v1.3.0/go.mod h1:1C9+zUoRETpelIbMxh6wj9APf2VnKh0tk9aRsrOQUsk=
-github.com/codeation/tile v0.1.3 h1:7G3TBsdx3cehp+xabAmpjt3FCi6ymvLmsSZWgLFxzLM=
-github.com/codeation/tile v0.1.3/go.mod h1:xYTGxWo9jgQbxMDCItmAWJGkg1cG/xIyHPwDK/fozrA=
+github.com/codeation/tile v0.1.4 h1:BZcYNjc28q7vqCte1rW8dF88XbJUF8yqXNzVSj7GXuk=
+github.com/codeation/tile v0.1.4/go.mod h1:b1jBEAaEvDPHyzRxbc/zSnT7id6LMnFW4U0A95OpjeQ=
