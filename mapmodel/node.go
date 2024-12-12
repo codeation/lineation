@@ -20,6 +20,7 @@ func newXMLNode(elem *xmlfile.Node, parent *Node) *Node {
 		Parent: parent,
 		Childs: make([]*Node, 0, len(elem.Childs)),
 	}
+	node.Value.Home()
 	if len(elem.Childs) == 0 {
 		return node
 	}

@@ -23,6 +23,12 @@ var keypadEnter = event.Keyboard{
 	Name: "KP_Enter",
 }
 
+var keyShiftEnter = event.Keyboard{
+	Rune:  13,
+	Shift: true,
+	Name:  "Return",
+}
+
 type Control struct {
 	mapModel *mapmodel.MindMap
 	mapView  *mapview.View
@@ -101,6 +107,9 @@ func (c *Control) Action(ctx context.Context, app eventlink.App) {
 				c.mapModel.Backspace()
 				c.modView.Set(true)
 			}
+		case keyShiftEnter:
+			c.mapModel.InsertNL()
+			c.modView.Set(true)
 
 		case event.KeyCopy, menuevent.Copy:
 			c.appClip.Put(c.mapModel.Selected.Value.String())

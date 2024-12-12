@@ -88,6 +88,10 @@ func (p *Palette) Columns() int {
 	return len(p.config.Boxes.Widths)
 }
 
+func (p *Palette) MaxRows() int {
+	return p.config.Boxes.MaxRows
+}
+
 func (p *Palette) BoxWidth(level int) int {
 	if level <= len(p.config.Boxes.Widths) {
 		return p.config.Boxes.Widths[level-1]

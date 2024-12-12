@@ -11,7 +11,6 @@ import (
 	"github.com/codeation/tile/view/fn"
 	"github.com/codeation/tile/view/margin"
 	"github.com/codeation/tile/view/minsize"
-	"github.com/codeation/tile/view/textview"
 
 	"github.com/codeation/lineation/mapmodel"
 	"github.com/codeation/lineation/palette"
@@ -45,15 +44,13 @@ func (v *View) nodeViewer(node *mapmodel.Node) view.Viewer {
 		return image.Pt(v.pal.BoxWidth(node.Level())-v.pal.TextAlign().X*2, 0)
 	}
 	var viewer view.Viewer
-	viewer = textview.New(
-		fieldview.WithFocused(node.Value, isChangeableFn),
-		v.pal.DefaultFont(),
-		v.pal.DefaultFont().Height+v.pal.TextLineOffset(),
-		defaultTextColor,
-		cursor,
-	)
-	viewer = minsize.New(viewer, nodeSizeFn)
-	viewer = margin.New(viewer, textMargin)
+	viewer = fieldview.New(fieldview.WithFocused(node.Value, isChangeableFn),
+		v.pal.DefaultFont(), defaultTextColor).
+		LineHeight(v.pal.DefaultFont().Height + v.pal.TextLineOffset()).
+		WithCursor(cursor).
+		MaxRows(v.pal.MaxRows())
+	viewer = minsize.New(viewer).MinSize(nodeSizeFn)
+	viewer = margin.New(viewer).Margin(textMargin)
 	viewer = box.New(
 		viewer,
 		fn.If(isSelectedFn, activeForegroundColor, defaultForegroundColor),

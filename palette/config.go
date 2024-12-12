@@ -16,9 +16,10 @@ type configWindow struct {
 }
 
 type configBoxes struct {
-	Align  configSize `json:"align"`
-	Offset configSize `json:"offset"`
-	Widths []int      `json:"widths"`
+	Align   configSize `json:"align"`
+	Offset  configSize `json:"offset"`
+	Widths  []int      `json:"widths"`
+	MaxRows int        `json:"max_rows"`
 }
 
 type configDialogs struct {
@@ -57,9 +58,10 @@ func defaultConfig() *Config {
 			Size: configSize{Width: 1280, Height: 768},
 		},
 		Boxes: configBoxes{
-			Align:  configSize{Width: 20, Height: 16},
-			Offset: configSize{Width: 50, Height: 16},
-			Widths: []int{100, 140, 300},
+			Align:   configSize{Width: 20, Height: 16},
+			Offset:  configSize{Width: 50, Height: 16},
+			Widths:  []int{100, 140, 300},
+			MaxRows: 0,
 		},
 		Dialogs: configDialogs{
 			Align:  configSize{Width: 20, Height: 16},
