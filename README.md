@@ -9,7 +9,7 @@ Mind Map Editor. Ready to catch your thoughts.
 Notes:
 
 - This project implements basic functions for working with Mind Map.
-- The project tested on Debian 12.8 and macOS 15.1.
+- The project was tested on Debian 12.9 and macOS 15.3.
 
 ## Driver installation
 
