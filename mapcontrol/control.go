@@ -11,7 +11,6 @@ import (
 	"github.com/codeation/tile/eventlink"
 	"github.com/codeation/tile/eventlink/ctxchan"
 
-	"github.com/codeation/lineation/appclip"
 	"github.com/codeation/lineation/mapmodel"
 	"github.com/codeation/lineation/mapview"
 	"github.com/codeation/lineation/menuevent"
@@ -33,17 +32,14 @@ type Control struct {
 	mapModel *mapmodel.MindMap
 	mapView  *mapview.View
 	modView  *modified.View
-	appClip  *appclip.Clipboard
 }
 
-func New(app eventlink.AppFramer, mapModel *mapmodel.MindMap, mapView *mapview.View,
-	modView *modified.View, appClip *appclip.Clipboard,
+func New(app eventlink.AppFramer, mapModel *mapmodel.MindMap, mapView *mapview.View, modView *modified.View,
 ) *Control {
 	return &Control{
 		mapModel: mapModel,
 		mapView:  mapView,
 		modView:  modView,
-		appClip:  appClip,
 	}
 }
 
@@ -56,7 +52,7 @@ func (c *Control) Action(ctx context.Context, app eventlink.App) {
 		if len(app.Chan()) == 0 && maybeChanged {
 			c.mapView.Draw(app)
 			c.modView.Draw()
-			app.Sync()
+			app.Application().Sync()
 			maybeChanged = false
 		}
 
@@ -112,9 +108,9 @@ func (c *Control) Action(ctx context.Context, app eventlink.App) {
 			c.modView.Set(true)
 
 		case event.KeyCopy, menuevent.Copy:
-			c.appClip.Put(c.mapModel.Selected.Value.String())
+			app.Application().ClipboardPut(clipboard.Text(c.mapModel.Selected.Value.String()))
 		case event.KeyPaste, menuevent.Paste:
-			c.appClip.Get()
+			app.Application().ClipboardGet(clipboard.TextType)
 
 		default:
 			switch ev := e.(type) {
@@ -163,7 +159,7 @@ func (c *Control) dragAndDrop(ctx context.Context, app eventlink.App, node *mapm
 	for {
 		if len(app.Chan()) == 0 {
 			c.mapView.Draw(app)
-			app.Sync()
+			app.Application().Sync()
 		}
 
 		e, ok := ctxchan.Get(ctx, app.Chan())

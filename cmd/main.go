@@ -11,7 +11,6 @@ import (
 	"github.com/codeation/impress"
 	"github.com/codeation/tile/eventlink"
 
-	"github.com/codeation/lineation/appclip"
 	"github.com/codeation/lineation/mapcontrol"
 	"github.com/codeation/lineation/mapmodel"
 	"github.com/codeation/lineation/mapview"
@@ -29,12 +28,12 @@ func run(ctx context.Context) error {
 	filename := filepath.Clean(flag.Args()[0])
 
 	pal := palette.NewPalette()
-	a := impress.NewApplication(pal.DefaultAppRect(), fmt.Sprintf("lineation %s", filename))
-	app := eventlink.MainApp(a)
+	title := fmt.Sprintf("lineation %s", filename)
+	app := eventlink.MainApp(impress.NewApplication(pal.DefaultAppRect(), title))
 	defer app.Close()
-	pal.FontLink(app.Application)
+	pal.FontLink(app.Application())
 	defer pal.FontClose()
-	menuevent.New(app.Application)
+	menuevent.New(app.Application())
 
 	mapRoot, err := xmlfile.Open(filename)
 	if err != nil {
@@ -45,9 +44,8 @@ func run(ctx context.Context) error {
 	defer mapView.Destroy()
 	modView := modified.NewView(app, pal)
 	defer modView.Destroy()
-	appClip := appclip.New(a)
 
-	mapControl := mapcontrol.New(app, mapModel, mapView, modView, appClip)
+	mapControl := mapcontrol.New(app, mapModel, mapView, modView)
 	app.Run(ctx, mapControl)
 
 	return nil
