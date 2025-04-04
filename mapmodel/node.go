@@ -3,15 +3,17 @@ package mapmodel
 import (
 	"slices"
 
+	"github.com/codeation/tile/control/fieldcontrol"
 	"github.com/codeation/tile/elem/field"
 
 	"github.com/codeation/lineation/xmlfile"
 )
 
 type Node struct {
-	Value  *field.Field
-	Parent *Node
-	Childs []*Node
+	Value   *field.Field
+	Control *fieldcontrol.FieldControl
+	Parent  *Node
+	Childs  []*Node
 }
 
 func newXMLNode(elem *xmlfile.Node, parent *Node) *Node {
@@ -21,10 +23,7 @@ func newXMLNode(elem *xmlfile.Node, parent *Node) *Node {
 		Childs: make([]*Node, 0, len(elem.Childs)),
 	}
 	node.Value.Home()
-	if len(elem.Childs) == 0 {
-		return node
-	}
-	node.Childs = make([]*Node, 0, len(elem.Childs))
+	node.Control = fieldcontrol.New(node.Value)
 	for _, child := range elem.Childs {
 		node.Childs = append(node.Childs, newXMLNode(child, node))
 	}
@@ -46,6 +45,7 @@ func (parent *Node) newChild() *Node {
 		Value:  field.New(""),
 		Parent: parent,
 	}
+	newNode.Control = fieldcontrol.New(newNode.Value)
 	parent.Childs = append([]*Node{newNode}, parent.Childs...)
 	return newNode
 }
@@ -56,6 +56,7 @@ func (node *Node) newNext() *Node {
 		Value:  field.New(""),
 		Parent: node.Parent,
 	}
+	newNode.Control = fieldcontrol.New(newNode.Value)
 	node.Parent.Childs = slices.Insert(node.Parent.Childs, i+1, newNode)
 	return newNode
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"image"
-	"unicode"
 
 	"github.com/codeation/impress/clipboard"
 	"github.com/codeation/impress/event"
@@ -18,15 +17,7 @@ import (
 	"github.com/codeation/lineation/xmlfile"
 )
 
-var keypadEnter = event.Keyboard{
-	Name: "KP_Enter",
-}
-
-var keyShiftEnter = event.Keyboard{
-	Rune:  13,
-	Shift: true,
-	Name:  "Return",
-}
+var keypadEnter = event.Keyboard{Name: "KP_Enter"}
 
 type Control struct {
 	mapModel *mapmodel.MindMap
@@ -43,8 +34,7 @@ func New(app eventlink.AppFramer, mapModel *mapmodel.MindMap, mapView *mapview.V
 	}
 }
 
-func (c *Control) Wait() {
-}
+func (c *Control) Wait() {}
 
 func (c *Control) Action(ctx context.Context, app eventlink.App) {
 	maybeChanged := true
@@ -94,19 +84,6 @@ func (c *Control) Action(ctx context.Context, app eventlink.App) {
 				c.modView.Set(true)
 			}
 
-		case event.KeyLeft:
-			c.mapModel.Left()
-		case event.KeyRight:
-			c.mapModel.Right()
-		case event.KeyBackSpace:
-			if c.mapModel.Selected.Value.Cursor() > 0 {
-				c.mapModel.Backspace()
-				c.modView.Set(true)
-			}
-		case keyShiftEnter:
-			c.mapModel.InsertNL()
-			c.modView.Set(true)
-
 		case event.KeyCopy, menuevent.Copy:
 			app.Application().ClipboardPut(clipboard.Text(c.mapModel.Selected.Value.String()))
 		case event.KeyPaste, menuevent.Paste:
@@ -116,12 +93,6 @@ func (c *Control) Action(ctx context.Context, app eventlink.App) {
 			switch ev := e.(type) {
 			case event.Configure:
 				c.mapView.Configure(ev.InnerSize)
-
-			case event.Keyboard:
-				if ev.IsGraphic() {
-					c.mapModel.Insert(ev.Rune)
-					c.modView.Set(true)
-				}
 
 			case event.Button:
 				if ev.Action == event.ButtonActionPress && ev.Button == event.ButtonLeft {
@@ -133,19 +104,14 @@ func (c *Control) Action(ctx context.Context, app eventlink.App) {
 					}
 				}
 
-			case event.Clipboard:
-				if text, ok := ev.Data.(clipboard.Text); ok {
-					for _, r := range text {
-						if !unicode.IsGraphic(r) {
-							continue
-						}
-						c.mapModel.Insert(r)
-					}
+			default:
+				oldValue := c.mapModel.Selected.Value.String()
+				c.mapModel.NodeControl(ctx, app, e, func(ctx context.Context, app eventlink.App, e event.Eventer) {
+					anyEvent = false
+				})
+				if oldValue != c.mapModel.Selected.Value.String() {
 					c.modView.Set(true)
 				}
-
-			default:
-				anyEvent = false
 			}
 		}
 

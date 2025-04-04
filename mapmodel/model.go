@@ -1,7 +1,12 @@
 package mapmodel
 
 import (
+	"context"
+
+	"github.com/codeation/impress/event"
 	"github.com/codeation/lineation/xmlfile"
+	"github.com/codeation/tile/control"
+	"github.com/codeation/tile/eventlink"
 )
 
 type MindMap struct {
@@ -79,22 +84,6 @@ func (m *MindMap) Adopt(node *Node, newParent *Node, beforeNode *Node) {
 	m.Selected.Value.End()
 }
 
-func (m *MindMap) Right() {
-	m.Selected.Value.Right()
-}
-
-func (m *MindMap) Left() {
-	m.Selected.Value.Left()
-}
-
-func (m *MindMap) Insert(alpha rune) {
-	m.Selected.Value.Insert(alpha)
-}
-
-func (m *MindMap) InsertNL() {
-	m.Selected.Value.InsertNL()
-}
-
-func (m *MindMap) Backspace() {
-	m.Selected.Value.Backspace()
+func (m *MindMap) NodeControl(ctx context.Context, app eventlink.App, e event.Eventer, prior control.DoFunc) {
+	m.Selected.Control.Control(ctx, app, e, prior)
 }
