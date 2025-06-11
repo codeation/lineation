@@ -14,7 +14,7 @@
             <node text="Enter text or delete a last symbol with Backspace"></node>
             <node text="Navigating with the cursor keys"></node>
             <node text="Use Enter to add the next child node"></node>
-            <node text="Use Delete to remove a node"></node>
+            <node text="Use Delete (or Fn-Backspace) to remove a node"></node>
             <node text="Use Ctrl-S (or Cmd-S) to save Mind Map changes"></node>
         </node>
         <node text="Mouse control">
