@@ -1,8 +1,5 @@
 package main
 
-// go build github.com/codeation/lineation/cmd
-// go build --tags impresslink github.com/codeation/lineation/cmd
-
 import (
 	"context"
 	"flag"
@@ -10,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/codeation/impress"
-	"github.com/codeation/impress/driver"
+	"github.com/codeation/impress/duo/duodriver"
 	"github.com/codeation/tile/eventlink"
 
 	"github.com/codeation/lineation/mapcontrol"
@@ -22,12 +19,17 @@ import (
 	"github.com/codeation/lineation/xmlfile"
 )
 
-func run(ctx context.Context, d driver.Driver) error {
+func run(ctx context.Context) error {
 	flag.Parse()
 	if len(flag.Args()) != 1 {
 		return fmt.Errorf("filename argument is missing")
 	}
 	filename := filepath.Clean(flag.Args()[0])
+
+	d, err := duodriver.New()
+	if err != nil {
+		return fmt.Errorf("duodriver.New: %w", err)
+	}
 
 	pal := palette.NewPalette()
 	title := fmt.Sprintf("lineation %s", filename)
@@ -53,8 +55,8 @@ func run(ctx context.Context, d driver.Driver) error {
 	return nil
 }
 
-func root(d driver.Driver) {
-	if err := run(context.Background(), d); err != nil {
+func main() {
+	if err := run(context.Background()); err != nil {
 		fmt.Println(err)
 	}
 }
