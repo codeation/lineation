@@ -10,7 +10,6 @@ import (
 	"github.com/codeation/tile/view/fieldview"
 	"github.com/codeation/tile/view/fn"
 	"github.com/codeation/tile/view/margin"
-	"github.com/codeation/tile/view/minsize"
 
 	"github.com/codeation/lineation/mapmodel"
 	"github.com/codeation/lineation/palette"
@@ -40,16 +39,16 @@ func (v *View) nodeViewer(node *mapmodel.Node) view.Viewer {
 	isChangeableFn := func() bool {
 		return node == v.m.Selected && node != v.draggingNode
 	}
-	nodeSizeFn := func() image.Point {
-		return image.Pt(v.pal.BoxWidth(node.Level())-v.pal.TextAlign().X*2, 0)
+	nodeWidthFn := func() int {
+		return v.pal.BoxWidth(node.Level()) - v.pal.TextAlign().X*2
 	}
 	var viewer view.Viewer
 	viewer = fieldview.New(fieldview.WithFocused(node.Value, isChangeableFn),
 		v.pal.DefaultFont(), defaultTextColor).
+		Width(nodeWidthFn).
 		LineHeight(v.pal.DefaultFont().Height + v.pal.TextLineOffset()).
 		WithCursor(cursor).
 		MaxRows(v.pal.MaxRows())
-	viewer = minsize.New(viewer).MinSize(nodeSizeFn)
 	viewer = margin.New(viewer).Margin(textMargin)
 	viewer = box.New(
 		viewer,
@@ -64,7 +63,7 @@ func (n *nodeView) Destroy() {
 }
 
 func (n *nodeView) ResetSize(defaultSize image.Point) {
-	n.size = n.viewer.Size(defaultSize)
+	n.size = n.viewer.Size()
 }
 
 func (n *nodeView) Size(defaultSize image.Point) image.Point {
@@ -74,7 +73,7 @@ func (n *nodeView) Size(defaultSize image.Point) image.Point {
 func (n *nodeView) Draw(rect image.Rectangle) {
 	n.w.Size(image.Rectangle{Min: rect.Min, Max: rect.Min.Add(n.size)})
 	n.w.Clear()
-	n.viewer.Draw(n.w, image.Rectangle{Max: n.size})
+	n.viewer.Draw(n.w, image.Pt(0, 0))
 	n.w.Show()
 }
 

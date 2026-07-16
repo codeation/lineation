@@ -1,6 +1,8 @@
 package mapview
 
 import (
+	"image"
+
 	"github.com/codeation/tile/view/fn"
 	"github.com/codeation/tile/view/solid"
 
@@ -10,7 +12,7 @@ import (
 var (
 	cursor                 *solid.Solid
 	defaultTextColor       fn.Color
-	textMargin             fn.Point
+	textMargin             image.Point
 	activeForegroundColor  fn.Color
 	defaultForegroundColor fn.Color
 	activeBackgroundColor  fn.Color
@@ -20,7 +22,7 @@ var (
 func setNodeFuncs(pal *palette.Palette) {
 	cursor = solid.New(pal.CursorSize(), fn.Const(pal.Color(palette.CursorBlock)))
 	defaultTextColor = fn.Const(pal.Color(palette.DefaultText))
-	textMargin = pal.TextAlign
+	textMargin = pal.TextAlign()
 	activeForegroundColor = fn.Const(pal.Color(palette.ActiveEdge))
 	defaultForegroundColor = fn.Const(pal.Color(palette.DefaultEdge))
 	activeBackgroundColor = fn.Const(pal.Color(palette.ActiveBoxBackground))

@@ -14,6 +14,7 @@ import (
 	"github.com/codeation/lineation/mapview"
 	"github.com/codeation/lineation/menuevent"
 	"github.com/codeation/lineation/modified"
+	"github.com/codeation/lineation/palette"
 	"github.com/codeation/lineation/xmlfile"
 )
 
@@ -23,14 +24,17 @@ type Control struct {
 	mapModel *mapmodel.MindMap
 	mapView  *mapview.View
 	modView  *modified.View
+	pal      *palette.Palette
 }
 
 func New(app eventlink.AppFramer, mapModel *mapmodel.MindMap, mapView *mapview.View, modView *modified.View,
+	pal *palette.Palette,
 ) *Control {
 	return &Control{
 		mapModel: mapModel,
 		mapView:  mapView,
 		modView:  modView,
+		pal:      pal,
 	}
 }
 

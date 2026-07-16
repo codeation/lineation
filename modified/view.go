@@ -34,6 +34,6 @@ func (v *View) Destroy() {
 
 func (v *View) Draw() {
 	v.w.Clear()
-	v.viewer.Draw(v.w, image.Rectangle{Max: v.viewer.Size(image.Point{})})
+	v.viewer.Draw(v.w, image.Pt(0, 0))
 	v.w.Show()
 }

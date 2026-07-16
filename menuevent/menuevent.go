@@ -7,7 +7,6 @@ import (
 
 var (
 	Save     = event.NewMenu("Save")
-	SaveAs   = event.NewMenu("SaveAs")
 	Exit     = event.NewMenu("Exit")
 	Copy     = event.NewMenu("Copy")
 	Paste    = event.NewMenu("Paste")
@@ -19,7 +18,6 @@ var (
 func New(app *impress.Application) {
 	file := app.NewMenu("File")
 	file.NewItem("Save", Save)
-	//file.NewItem("Save As", SaveAs) // TODO
 	file.NewItem("Exit", Exit)
 
 	edit := app.NewMenu("Edit")

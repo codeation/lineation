@@ -49,7 +49,7 @@ func run(ctx context.Context) error {
 	modView := modified.NewView(app, pal)
 	defer modView.Destroy()
 
-	mapControl := mapcontrol.New(app, mapModel, mapView, modView)
+	mapControl := mapcontrol.New(app, mapModel, mapView, modView, pal)
 	app.Run(ctx, mapControl)
 
 	return nil
