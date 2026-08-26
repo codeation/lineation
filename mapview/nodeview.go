@@ -9,7 +9,7 @@ import (
 	"github.com/codeation/tile/view/box"
 	"github.com/codeation/tile/view/fieldview"
 	"github.com/codeation/tile/view/fn"
-	"github.com/codeation/tile/view/margin"
+	"github.com/codeation/tile/view/solid"
 
 	"github.com/codeation/lineation/mapmodel"
 	"github.com/codeation/lineation/palette"
@@ -40,21 +40,19 @@ func (v *View) nodeViewer(node *mapmodel.Node) view.Viewer {
 		return node == v.m.Selected && node != v.draggingNode
 	}
 	nodeWidthFn := func() int {
-		return v.pal.BoxWidth(node.Level()) - v.pal.TextAlign().X*2
+		return v.pal.BoxWidth(node.Level()) - v.pal.BoxPadding().X*2
 	}
 	var viewer view.Viewer
 	viewer = fieldview.New(fieldview.WithFocused(node.Value, isChangeableFn),
-		v.pal.DefaultFont(), defaultTextColor).
+		v.pal.DefaultFont(), fn.Const(v.pal.Color(palette.DefaultText))).
 		Width(nodeWidthFn).
-		LineHeight(v.pal.DefaultFont().Height + v.pal.TextLineOffset()).
-		WithCursor(cursor).
-		MaxRows(v.pal.MaxRows())
-	viewer = margin.New(viewer).Margin(textMargin)
-	viewer = box.New(
-		viewer,
-		fn.If(isSelectedFn, activeForegroundColor, defaultForegroundColor),
-		fn.If(isAccentedFn, activeBackgroundColor, defaultBackgroundColor),
-	)
+		LineHeight(v.pal.TextLineHeight()).
+		WithCursor(solid.New(v.pal.CursorSize(), fn.Const(v.pal.Color(palette.CursorBlock)))).
+		MaxRows(v.pal.BoxRowCount())
+	viewer = box.New(viewer).
+		Padding(v.pal.BoxPadding()).
+		Foreground(fn.If(isSelectedFn, v.pal.Color(palette.ActiveEdge), v.pal.Color(palette.DefaultEdge))).
+		Background(fn.If(isAccentedFn, v.pal.Color(palette.ActiveBoxBackground), v.pal.Color(palette.DefaultBackground)))
 	return viewer
 }
 

@@ -20,29 +20,37 @@ import (
 )
 
 func run(ctx context.Context) error {
+	var filename string
+	mapRoot := &xmlfile.Node{Text: "New Topic"}
+
 	flag.Parse()
-	if len(flag.Args()) != 1 {
-		return fmt.Errorf("filename argument is missing")
+	if len(flag.Args()) == 1 {
+		filename = filepath.Clean(flag.Args()[0])
+		xmlNode, err := xmlfile.Open(filename)
+		if err != nil {
+			return fmt.Errorf("xmlfile.Open: %w", err)
+		}
+		mapRoot = xmlNode
 	}
-	filename := filepath.Clean(flag.Args()[0])
+
+	pal, err := palette.NewPalette()
+	if err != nil {
+		return fmt.Errorf("palette.NewPalette: %w", err)
+	}
 
 	d, err := duodriver.New()
 	if err != nil {
 		return fmt.Errorf("duodriver.New: %w", err)
 	}
 
-	pal := palette.NewPalette()
 	title := fmt.Sprintf("lineation %s", filename)
 	app := eventlink.MainApp(impress.MakeApplication(d, pal.DefaultAppRect(), title))
 	defer app.Close()
-	pal.FontLink(app.Application())
-	defer pal.FontClose()
 	menuevent.New(app.Application())
 
-	mapRoot, err := xmlfile.Open(filename)
-	if err != nil {
-		return fmt.Errorf("xmlfile.Open: %w", err)
-	}
+	pal.FontsOpen(app.Application())
+	defer pal.FontsClose()
+
 	mapModel := mapmodel.New(mapRoot, filename)
 	mapView := mapview.New(app, mapModel, pal)
 	defer mapView.Destroy()

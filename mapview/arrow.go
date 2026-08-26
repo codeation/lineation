@@ -7,7 +7,7 @@ import (
 )
 
 func (v *View) arrowDraw(parentBorder image.Rectangle, nodeBorder image.Rectangle) {
-	padding := v.pal.TextAlign()
+	padding := v.pal.BoxPadding()
 	padding.Y += v.pal.DefaultFont().Height / 2
 	if parentBorder.Min.X < nodeBorder.Min.X {
 		// to right

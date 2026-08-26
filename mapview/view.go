@@ -26,7 +26,6 @@ type View struct {
 }
 
 func New(app eventlink.AppFramer, m *mapmodel.MindMap, pal *palette.Palette) *View {
-	setNodeFuncs(pal)
 	return &View{
 		m:     m,
 		pal:   pal,
@@ -108,7 +107,7 @@ func (v *View) nodesDraw(nodes []*mapmodel.Node, rect image.Rectangle, lr Direct
 			v.nodesDraw(node.Childs, v.childRect(node, rect, lr), lr, nodeBorder)
 		}
 		childSize := v.sizeWithChilds(node)
-		rect = rect.Add(geo.ColSpan(childSize)).Add(geo.ColSpan(v.pal.BoxOffset()))
+		rect = rect.Add(geo.ColSpan(childSize)).Add(geo.ColSpan(v.pal.BoxMargin()))
 	}
 }
 

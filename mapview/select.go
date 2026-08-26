@@ -35,7 +35,7 @@ func (v *View) nodesSelect(nodes []*mapmodel.Node, rect image.Rectangle, lr Dire
 			}
 		}
 		childSize := v.sizeWithChilds(node)
-		rect = rect.Add(geo.ColSpan(childSize)).Add(geo.ColSpan(v.pal.BoxOffset()))
+		rect = rect.Add(geo.ColSpan(childSize)).Add(geo.ColSpan(v.pal.BoxMargin()))
 	}
 	return nil, false
 }
@@ -57,7 +57,7 @@ func (v *View) nodesNear(nodes []*mapmodel.Node, rect image.Rectangle, lr Direct
 		return nil, false
 	}
 	rowSpan := image.Pt(v.pal.BoxWidth(nodes[0].Level()), 0)
-	colSpan := geo.ColSpan(v.pal.BoxOffset())
+	colSpan := geo.ColSpan(v.pal.BoxMargin())
 	for _, node := range nodes {
 		if node != v.draggingNode {
 			if point.In(image.Rectangle{Min: rect.Min.Sub(colSpan), Max: rect.Min.Add(rowSpan)}) {
@@ -68,7 +68,7 @@ func (v *View) nodesNear(nodes []*mapmodel.Node, rect image.Rectangle, lr Direct
 			}
 		}
 		childSize := v.sizeWithChilds(node)
-		rect = rect.Add(geo.ColSpan(childSize)).Add(geo.ColSpan(v.pal.BoxOffset()))
+		rect = rect.Add(geo.ColSpan(childSize)).Add(geo.ColSpan(v.pal.BoxMargin()))
 	}
 	return nil, false
 }

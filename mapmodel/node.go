@@ -30,6 +30,16 @@ func newXMLNode(elem *xmlfile.Node, parent *Node) *Node {
 	return node
 }
 
+func newTextNode(text string, parent *Node) *Node {
+	node := &Node{
+		Value:  field.New(text),
+		Parent: parent,
+	}
+	node.Value.Home()
+	node.Control = fieldcontrol.New(node.Value)
+	return node
+}
+
 func (node *Node) export() *xmlfile.Node {
 	output := &xmlfile.Node{
 		Text: node.Value.String(),

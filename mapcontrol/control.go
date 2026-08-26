@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"image"
+	"path"
 
 	"github.com/codeation/impress/clipboard"
 	"github.com/codeation/impress/event"
+	"github.com/codeation/tile/control/dialog"
+	"github.com/codeation/tile/elem/field"
 	"github.com/codeation/tile/eventlink"
 	"github.com/codeation/tile/eventlink/ctxchan"
 
@@ -15,26 +18,29 @@ import (
 	"github.com/codeation/lineation/menuevent"
 	"github.com/codeation/lineation/modified"
 	"github.com/codeation/lineation/palette"
+	"github.com/codeation/lineation/saveas"
 	"github.com/codeation/lineation/xmlfile"
 )
 
 var keypadEnter = event.Keyboard{Name: "KP_Enter"}
 
 type Control struct {
-	mapModel *mapmodel.MindMap
-	mapView  *mapview.View
-	modView  *modified.View
-	pal      *palette.Palette
+	mapModel   *mapmodel.MindMap
+	mapView    *mapview.View
+	modView    *modified.View
+	dialogLink *eventlink.EventLink
+	pal        *palette.Palette
 }
 
 func New(app eventlink.AppFramer, mapModel *mapmodel.MindMap, mapView *mapview.View, modView *modified.View,
 	pal *palette.Palette,
 ) *Control {
 	return &Control{
-		mapModel: mapModel,
-		mapView:  mapView,
-		modView:  modView,
-		pal:      pal,
+		mapModel:   mapModel,
+		mapView:    mapView,
+		modView:    modView,
+		dialogLink: eventlink.New(),
+		pal:        pal,
 	}
 }
 
@@ -55,19 +61,34 @@ func (c *Control) Action(ctx context.Context, app eventlink.App) {
 			return
 		}
 
+		if _, ok := c.dialogLink.Actor(); ok {
+			c.dialogLink.Put(ctx, e)
+			if _, ok := e.(event.Configure); !ok {
+				continue
+			}
+		}
+
 		anyEvent := true
 		switch e {
 		case event.DestroyEvent, event.KeyExit, menuevent.Exit:
 			app.Cancel()
 			return
 
+		case menuevent.NewMap:
+			c.mapModel.NewRootNode("New Topic")
+			app.Application().Title("lineation")
+			c.modView.Set(true)
+
 		case event.KeySave, menuevent.Save:
 			data := c.mapModel.Export()
 			if err := xmlfile.Save(data, c.mapModel.Filename); err != nil {
-				fmt.Println(err)
+				c.saveAs(ctx, app, err.Error())
 			} else {
 				c.modView.Set(false)
 			}
+
+		case menuevent.SaveAs:
+			c.saveAs(ctx, app, "")
 
 		case event.KeyUp:
 			c.mapModel.Up()
@@ -152,4 +173,31 @@ func (c *Control) dragAndDrop(ctx context.Context, app eventlink.App, node *mapm
 			return
 		}
 	}
+}
+
+func (c *Control) saveAs(ctx context.Context, app eventlink.App, errMessage string) {
+	dirname, filename := path.Split(c.mapModel.Filename)
+	dirnameField := field.New(dirname)
+	filenameField := field.New(filename)
+	errorField := field.New(errMessage)
+	fields := []*dialog.Field{
+		dialog.NewField("Path", dirnameField),
+		dialog.NewField("Name", filenameField),
+	}
+	buttons := []*dialog.Button{
+		dialog.NewButton("Save", func() {
+			newFilename := path.Join(dirnameField.String(), filenameField.String())
+			if err := xmlfile.Save(c.mapModel.Export(), newFilename); err != nil {
+				errorField.Set(err.Error())
+				return
+			}
+			c.mapModel.Filename = newFilename
+			app.Application().Title(fmt.Sprintf("lineation %s", newFilename))
+			c.modView.Set(false)
+			c.dialogLink.Cancel()
+		}),
+		dialog.NewButton("Cancel", func() { c.dialogLink.Cancel() }),
+	}
+	saveAs := saveas.New(app, fields, buttons, "Save As", errorField, c.pal)
+	c.dialogLink.Link(ctx, app, saveAs)
 }

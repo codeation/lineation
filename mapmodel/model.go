@@ -87,3 +87,9 @@ func (m *MindMap) Adopt(node *Node, newParent *Node, beforeNode *Node) {
 func (m *MindMap) NodeControl(ctx context.Context, app eventlink.App, e event.Eventer, prior control.DoFunc) {
 	m.Selected.Control.Control(ctx, app, e, prior)
 }
+
+func (m *MindMap) NewRootNode(text string) {
+	m.Root = newTextNode(text, nil)
+	m.Selected = m.Root
+	m.Filename = ""
+}
