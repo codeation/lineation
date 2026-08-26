@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	NewMap   = event.NewMenu("New")
+	NewMap   = event.NewMenu("NewMap")
 	Save     = event.NewMenu("Save")
 	SaveAs   = event.NewMenu("SaveAs")
 	Exit     = event.NewMenu("Exit")

@@ -8,13 +8,13 @@ import (
 	"github.com/codeation/tile/view"
 	"github.com/codeation/tile/view/align"
 	"github.com/codeation/tile/view/box"
+	"github.com/codeation/tile/view/chunkview"
 	"github.com/codeation/tile/view/column"
 	"github.com/codeation/tile/view/empty"
 	"github.com/codeation/tile/view/fieldview"
 	"github.com/codeation/tile/view/fn"
 	"github.com/codeation/tile/view/row"
 	"github.com/codeation/tile/view/solid"
-	"io.local/text/gen/article/elemview/chunkview"
 
 	"github.com/codeation/lineation/palette"
 )
