@@ -2,14 +2,14 @@
 
 Mind Map Editor. Ready to catch your thoughts.
 
-<img src="https://codeation.github.io/images/lineation_demo.png" width="782" height="636" />
+<p><img src="https://codeation.github.io/images/lineation_demo_2.png" width="773" height="658" /></p>
 
 ## Alpha Version
 
 Notes:
 
 - This project implements basic functions for working with Mind Map.
-- The project was tested on Debian 13.3 and macOS 26.3.
+- The project was tested on Debian 13.6 and macOS 26.6.
 
 ## Driver installation
 
