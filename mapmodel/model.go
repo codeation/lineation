@@ -2,6 +2,7 @@ package mapmodel
 
 import (
 	"context"
+	"iter"
 
 	"github.com/codeation/impress/event"
 	"github.com/codeation/lineation/xmlfile"
@@ -33,10 +34,6 @@ func (m *MindMap) Select(node *Node) {
 	m.Selected.Value.Home()
 	m.Selected = node
 	m.Selected.Value.End()
-}
-
-func (m *MindMap) Every(fn func(node *Node)) {
-	m.Root.every(fn)
 }
 
 func (m *MindMap) Down() {
@@ -92,4 +89,10 @@ func (m *MindMap) NewRootNode(text string) {
 	m.Root = newTextNode(text, nil)
 	m.Selected = m.Root
 	m.Filename = ""
+}
+
+func (m *MindMap) Range() iter.Seq[*Node] {
+	return func(yield func(*Node) bool) {
+		m.Root.iterRange(yield)
+	}
 }

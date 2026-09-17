@@ -51,16 +51,16 @@ func (v *View) nodesReset(app eventlink.App) {
 	for _, nodeView := range v.nodes {
 		nodeView.toDestroy = true
 	}
-	v.m.Every(func(node *mapmodel.Node) {
+	for node := range v.m.Range() {
 		if nodeView, ok := v.nodes[node]; ok {
 			nodeView.toDestroy = false
 			nodeView.ResetSize(image.Point{})
-			return
+			continue
 		}
 		noveView := v.newNode(app, node)
 		noveView.ResetSize(image.Point{})
 		v.nodes[node] = noveView
-	})
+	}
 	maps.DeleteFunc(v.nodes, func(_ *mapmodel.Node, nodeView *nodeView) bool {
 		if nodeView.toDestroy {
 			nodeView.Destroy()

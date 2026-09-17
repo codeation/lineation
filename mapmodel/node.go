@@ -149,9 +149,14 @@ func (node *Node) up() *Node {
 	return cursor
 }
 
-func (node *Node) every(fn func(node *Node)) {
-	fn(node)
-	for _, child := range node.Childs {
-		child.every(fn)
+func (node *Node) iterRange(yield func(*Node) bool) bool {
+	if !yield(node) {
+		return false
 	}
+	for _, child := range node.Childs {
+		if !child.iterRange(yield) {
+			return false
+		}
+	}
+	return true
 }
